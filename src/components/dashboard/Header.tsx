@@ -27,8 +27,8 @@ export function Header() {
         {/* Logo and Nav */}
         <div className="flex items-center gap-4 md:gap-8">
           <div className="flex items-center gap-2">
-            <img src={attenovaLogo} alt="Attenova" className="w-10 h-10 object-contain" />
-            <span className="text-white font-semibold text-lg">Attenova</span>
+            <img src={attenovaLogo} alt="Attenova" className="w-12 h-12 object-contain" />
+            <span className="text-white font-semibold text-base">Attenova</span>
           </div>
 
           {/* Desktop Navigation */}
