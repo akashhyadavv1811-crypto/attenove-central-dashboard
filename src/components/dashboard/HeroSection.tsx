@@ -42,8 +42,8 @@ export function HeroSection() {
 
   return (
     <section className="relative">
-      {/* Green background section with curved overlay */}
-      <div className="relative overflow-hidden pb-20" style={{ backgroundColor: '#1e3a34' }}>
+      {/* Blue background section with curved overlay */}
+      <div className="relative overflow-hidden pb-20 bg-primary">
         {/* Main curved overlay from top-right */}
         <div 
           className="absolute pointer-events-none"
@@ -52,7 +52,7 @@ export function HeroSection() {
             right: '-10%',
             width: '70%',
             height: '200%',
-            background: 'radial-gradient(ellipse at center, rgba(156, 169, 158, 0.35) 0%, rgba(140, 155, 145, 0.2) 40%, transparent 70%)',
+            background: 'radial-gradient(ellipse at center, rgba(100, 140, 200, 0.35) 0%, rgba(80, 120, 180, 0.2) 40%, transparent 70%)',
             transform: 'rotate(-15deg)',
           }}
         />
@@ -65,7 +65,7 @@ export function HeroSection() {
             right: '5%',
             width: '50%',
             height: '150%',
-            background: 'radial-gradient(ellipse at center, rgba(180, 190, 175, 0.2) 0%, transparent 60%)',
+            background: 'radial-gradient(ellipse at center, rgba(120, 160, 220, 0.2) 0%, transparent 60%)',
             transform: 'rotate(-25deg)',
           }}
         />
