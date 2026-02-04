@@ -1,0 +1,117 @@
+import { Header } from "@/components/dashboard/Header";
+import { Search, Plus, Filter, Download, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+const employees = [
+  { id: "EMP001", name: "Priya Sharma", email: "priya.sharma@company.com", department: "Engineering", role: "Software Engineer", status: "Active", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" },
+  { id: "EMP002", name: "Rahul Verma", email: "rahul.verma@company.com", department: "Engineering", role: "DevOps Engineer", status: "Active", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" },
+  { id: "EMP003", name: "Sneha Patel", email: "sneha.patel@company.com", department: "Design", role: "UI/UX Designer", status: "Active", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" },
+  { id: "EMP004", name: "Amit Singh", email: "amit.singh@company.com", department: "Management", role: "Project Manager", status: "On Leave", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" },
+  { id: "EMP005", name: "Kavita Reddy", email: "kavita.reddy@company.com", department: "HR", role: "HR Executive", status: "Active", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" },
+  { id: "EMP006", name: "Vikram Joshi", email: "vikram.joshi@company.com", department: "Engineering", role: "Tech Lead", status: "Active", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100" },
+  { id: "EMP007", name: "Anita Desai", email: "anita.desai@company.com", department: "Finance", role: "Accountant", status: "Active", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100" },
+  { id: "EMP008", name: "Suresh Kumar", email: "suresh.kumar@company.com", department: "Engineering", role: "Backend Developer", status: "Inactive", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" },
+];
+
+const Employees = () => {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <main className="px-6 py-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Employees</h1>
+            <p className="text-sm text-muted-foreground">Manage your organization's employees</p>
+          </div>
+          <Button className="bg-primary text-primary-foreground">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Employee
+          </Button>
+        </div>
+
+        {/* Filters Bar */}
+        <div className="widget-card mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search employees..." className="pl-9" />
+            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="w-4 h-4 mr-2" />
+              Filter
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
+
+        {/* Employees Table */}
+        <div className="widget-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {employees.map((employee) => (
+                <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-9 h-9">
+                        <AvatarImage src={employee.avatar} />
+                        <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-foreground">{employee.name}</p>
+                        <p className="text-xs text-muted-foreground">{employee.email}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{employee.id}</TableCell>
+                  <TableCell className="text-muted-foreground">{employee.department}</TableCell>
+                  <TableCell className="text-muted-foreground">{employee.role}</TableCell>
+                  <TableCell>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      employee.status === 'Active' ? 'badge-success' :
+                      employee.status === 'On Leave' ? 'badge-warning' :
+                      'badge-danger'
+                    }`}>
+                      {employee.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="w-8 h-8">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Employees;
