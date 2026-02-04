@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Filter, Download, MoreHorizontal } from "lucide-react";
+import { Search, Plus, Filter, Download, MoreHorizontal, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,8 +25,60 @@ const employees = [
   { id: "EMP008", name: "Suresh Kumar", email: "suresh.kumar@company.com", department: "Engineering", role: "Backend Developer", status: "Inactive", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" },
 ];
 
+type SortField = "name" | "id" | "department" | "role" | "status";
+type SortDirection = "asc" | "desc" | null;
+
 const Employees = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    }
+    if (sortDirection === "asc") {
+      return <ChevronUp className="w-4 h-4 ml-1" />;
+    }
+    return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const filteredAndSortedData = employees
+    .filter((emp) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        emp.name.toLowerCase().includes(query) ||
+        emp.id.toLowerCase().includes(query) ||
+        emp.department.toLowerCase().includes(query) ||
+        emp.role.toLowerCase().includes(query) ||
+        emp.status.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => {
+      if (!sortField || !sortDirection) return 0;
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      if (sortDirection === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      }
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +102,12 @@ const Employees = () => {
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search employees..." className="pl-9" />
+              <Input 
+                placeholder="Search employees..." 
+                className="pl-9" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
             <Button variant="outline" size="sm">
               <Filter className="w-4 h-4 mr-2" />
@@ -65,53 +122,95 @@ const Employees = () => {
 
         {/* Employees Table */}
         <div className="widget-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-9 h-9">
-                        <AvatarImage src={employee.avatar} />
-                        <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground">{employee.name}</p>
-                        <p className="text-xs text-muted-foreground">{employee.email}</p>
-                      </div>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-primary hover:bg-primary">
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center">
+                      Employee
+                      {getSortIcon("name")}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{employee.id}</TableCell>
-                  <TableCell className="text-muted-foreground">{employee.department}</TableCell>
-                  <TableCell className="text-muted-foreground">{employee.role}</TableCell>
-                  <TableCell>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      employee.status === 'Active' ? 'badge-success' :
-                      employee.status === 'On Leave' ? 'badge-warning' :
-                      'badge-danger'
-                    }`}>
-                      {employee.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="w-8 h-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("id")}
+                  >
+                    <div className="flex items-center">
+                      ID
+                      {getSortIcon("id")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("department")}
+                  >
+                    <div className="flex items-center">
+                      Department
+                      {getSortIcon("department")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("role")}
+                  >
+                    <div className="flex items-center">
+                      Role
+                      {getSortIcon("role")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      {getSortIcon("status")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-primary-foreground w-10">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedData.map((employee) => (
+                  <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-9 h-9">
+                          <AvatarImage src={employee.avatar} />
+                          <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-foreground">{employee.name}</p>
+                          <p className="text-xs text-muted-foreground">{employee.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{employee.id}</TableCell>
+                    <TableCell className="text-muted-foreground">{employee.department}</TableCell>
+                    <TableCell className="text-muted-foreground">{employee.role}</TableCell>
+                    <TableCell>
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        employee.status === 'Active' ? 'badge-success' :
+                        employee.status === 'On Leave' ? 'badge-warning' :
+                        'badge-danger'
+                      }`}>
+                        {employee.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="w-8 h-8">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </main>
 
