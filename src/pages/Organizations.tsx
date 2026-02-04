@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Building, MapPin, Users, LayoutGrid, List, ArrowUpDown, ChevronUp, ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Building, MapPin, Users, LayoutGrid, List, ArrowUpDown, ChevronUp, ChevronDown, Pencil, Trash2, Filter, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { AddOrganizationModal } from "@/components/modals/AddOrganizationModal";
 import { EditOrganizationModal } from "@/components/modals/EditOrganizationModal";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -14,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { format } from "date-fns";
 
 interface Organization {
   id: number;
@@ -46,6 +54,12 @@ const Organizations = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [locationFilters, setLocationFilters] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const allStatuses = Array.from(new Set(organizations.map(o => o.status)));
+  const allLocations = Array.from(new Set(organizations.map(o => o.location)));
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -93,15 +107,49 @@ const Organizations = () => {
     setSelectedOrganization(null);
   };
 
+  const toggleStatusFilter = (status: string) => {
+    setStatusFilters(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const toggleLocationFilter = (location: string) => {
+    setLocationFilters(prev => 
+      prev.includes(location) 
+        ? prev.filter(l => l !== location)
+        : [...prev, location]
+    );
+  };
+
+  const clearFilters = () => {
+    setStatusFilters([]);
+    setLocationFilters([]);
+  };
+
+  const hasActiveFilters = statusFilters.length > 0 || locationFilters.length > 0;
+
   const filteredAndSortedData = organizations
     .filter((org) => {
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        org.name.toLowerCase().includes(query) ||
-        org.location.toLowerCase().includes(query) ||
-        org.status.toLowerCase().includes(query)
-      );
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          org.name.toLowerCase().includes(query) ||
+          org.location.toLowerCase().includes(query) ||
+          org.status.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+      // Status filter
+      if (statusFilters.length > 0 && !statusFilters.includes(org.status)) {
+        return false;
+      }
+      // Location filter
+      if (locationFilters.length > 0 && !locationFilters.includes(org.location)) {
+        return false;
+      }
+      return true;
     })
     .sort((a, b) => {
       if (!sortField || !sortDirection) return 0;
@@ -112,6 +160,28 @@ const Organizations = () => {
       }
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
+
+  const exportToCSV = () => {
+    const headers = ["ID", "Name", "Location", "Employees", "Devices", "Status"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredAndSortedData.map(org => 
+        [org.id, org.name, `"${org.location}"`, org.employees, org.devices, org.status].join(",")
+      )
+    ];
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    link.href = url;
+    link.download = `Organizations_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,14 +203,73 @@ const Organizations = () => {
         {/* Search and View Toggle */}
         <div className="widget-card mb-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="relative max-w-sm flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search organizations..." 
-                className="pl-9" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative max-w-sm flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search organizations..." 
+                  className="pl-9" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                    {hasActiveFilters && (
+                      <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
+                        {statusFilters.length + locationFilters.length}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="start">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm">Filters</h4>
+                      {hasActiveFilters && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
+                          Clear all
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
+                      {allStatuses.map(status => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`org-status-${status}`}
+                            checked={statusFilters.includes(status)}
+                            onCheckedChange={() => toggleStatusFilter(status)}
+                          />
+                          <label htmlFor={`org-status-${status}`} className="text-sm cursor-pointer">{status}</label>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wide">Location</Label>
+                      {allLocations.map(location => (
+                        <div key={location} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`org-loc-${location}`}
+                            checked={locationFilters.includes(location)}
+                            onCheckedChange={() => toggleLocationFilter(location)}
+                          />
+                          <label htmlFor={`org-loc-${location}`} className="text-sm cursor-pointer">{location}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <Button variant="outline" size="sm" onClick={exportToCSV}>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
             </div>
             <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
               <Button
@@ -163,6 +292,25 @@ const Organizations = () => {
               </Button>
             </div>
           </div>
+
+          {/* Active filter chips */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">Active filters:</span>
+              {statusFilters.map(status => (
+                <span key={status} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {status}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleStatusFilter(status)} />
+                </span>
+              ))}
+              {locationFilters.map(location => (
+                <span key={location} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {location}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleLocationFilter(location)} />
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Card View */}

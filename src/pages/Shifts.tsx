@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Clock, Users, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Clock, Users, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -11,9 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CreateShiftModal } from "@/components/modals/CreateShiftModal";
 import { EditShiftModal } from "@/components/modals/EditShiftModal";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
+import { format } from "date-fns";
 
 interface Shift {
   id: number;
@@ -46,6 +54,10 @@ const Shifts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const allStatuses = Array.from(new Set(shifts.map(s => s.status)));
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -93,16 +105,37 @@ const Shifts = () => {
     setSelectedShift(null);
   };
 
+  const toggleStatusFilter = (status: string) => {
+    setStatusFilters(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const clearFilters = () => {
+    setStatusFilters([]);
+  };
+
+  const hasActiveFilters = statusFilters.length > 0;
+
   const filteredAndSortedData = shifts
     .filter((shift) => {
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        shift.name.toLowerCase().includes(query) ||
-        shift.startTime.toLowerCase().includes(query) ||
-        shift.endTime.toLowerCase().includes(query) ||
-        shift.status.toLowerCase().includes(query)
-      );
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          shift.name.toLowerCase().includes(query) ||
+          shift.startTime.toLowerCase().includes(query) ||
+          shift.endTime.toLowerCase().includes(query) ||
+          shift.status.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+      // Status filter
+      if (statusFilters.length > 0 && !statusFilters.includes(shift.status)) {
+        return false;
+      }
+      return true;
     })
     .sort((a, b) => {
       if (!sortField || !sortDirection) return 0;
@@ -113,6 +146,28 @@ const Shifts = () => {
       }
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
+
+  const exportToCSV = () => {
+    const headers = ["ID", "Shift Name", "Start Time", "End Time", "Break", "Employees", "Status"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredAndSortedData.map(shift => 
+        [shift.id, shift.name, shift.startTime, shift.endTime, shift.breakTime, shift.employees, shift.status].join(",")
+      )
+    ];
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    link.href = url;
+    link.download = `Shifts_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,17 +186,75 @@ const Shifts = () => {
           </Button>
         </div>
 
-        {/* Search */}
+        {/* Search and Filter */}
         <div className="widget-card mb-6">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search shifts..." 
-              className="pl-9" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search shifts..." 
+                className="pl-9" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filter
+                  {hasActiveFilters && (
+                    <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
+                      {statusFilters.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48" align="start">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Filters</h4>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
+                        Clear all
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
+                    {allStatuses.map(status => (
+                      <div key={status} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`shift-status-${status}`}
+                          checked={statusFilters.includes(status)}
+                          onCheckedChange={() => toggleStatusFilter(status)}
+                        />
+                        <label htmlFor={`shift-status-${status}`} className="text-sm cursor-pointer">{status}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
           </div>
+
+          {/* Active filter chips */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">Active filters:</span>
+              {statusFilters.map(status => (
+                <span key={status} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {status}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleStatusFilter(status)} />
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Shifts Table */}
