@@ -103,6 +103,33 @@ const Reports = () => {
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
 
+  const exportToCSV = () => {
+    const headers = ["Emp Code", "Employee Name", "Date", "Check In", "Check Out", "Status", "Hours Worked"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredAndSortedData.map(row => 
+        [row.empCode, row.name, row.date, row.checkIn, row.checkOut, row.status, row.hoursWorked].join(",")
+      )
+    ];
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    const reportLabel = reportTypes.find(r => r.value === selectedReportType)?.label || "Report";
+    const dateRange = startDate && endDate 
+      ? `_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}`
+      : `_${format(new Date(), "yyyy-MM-dd")}`;
+    
+    link.href = url;
+    link.download = `${reportLabel.replace(/\s+/g, "_")}${dateRange}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Present":
@@ -212,7 +239,7 @@ const Reports = () => {
           </div>
 
           {/* Export Button */}
-          <Button className="ml-auto">
+          <Button className="ml-auto" onClick={exportToCSV}>
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
