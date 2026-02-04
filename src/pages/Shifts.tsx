@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Search, Plus, Clock, Users, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CreateShiftModal } from "@/components/modals/CreateShiftModal";
 
 const shifts = [
   { id: 1, name: "Morning Shift", startTime: "06:00 AM", endTime: "02:00 PM", breakTime: "30 min", employees: 85, status: "Active" },
@@ -21,6 +23,8 @@ const shifts = [
 ];
 
 const Shifts = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -32,7 +36,7 @@ const Shifts = () => {
             <h1 className="text-2xl font-semibold text-foreground">Shifts</h1>
             <p className="text-sm text-muted-foreground">Configure shift timings and rules</p>
           </div>
-          <Button className="bg-primary text-primary-foreground">
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Shift
           </Button>
@@ -103,6 +107,8 @@ const Shifts = () => {
           </Table>
         </div>
       </main>
+
+      <CreateShiftModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
   );
 };

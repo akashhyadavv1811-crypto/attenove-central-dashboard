@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Search, Plus, Building, MapPin, Users, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddOrganizationModal } from "@/components/modals/AddOrganizationModal";
 
 const organizations = [
   { id: 1, name: "Headquarters", location: "Mumbai, India", employees: 120, devices: 4, status: "Active" },
@@ -13,6 +15,8 @@ const organizations = [
 ];
 
 const Organizations = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -24,7 +28,7 @@ const Organizations = () => {
             <h1 className="text-2xl font-semibold text-foreground">Organizations</h1>
             <p className="text-sm text-muted-foreground">Manage offices and biometric devices</p>
           </div>
-          <Button className="bg-primary text-primary-foreground">
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Organization
           </Button>
@@ -79,6 +83,8 @@ const Organizations = () => {
           ))}
         </div>
       </main>
+
+      <AddOrganizationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
   );
 };
