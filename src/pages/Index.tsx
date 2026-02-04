@@ -12,26 +12,26 @@ const Index = () => {
       <Header />
       <HeroSection />
       
-      <main className="px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="px-6 py-6 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Left column */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <ActiveShifts />
           </div>
 
           {/* Middle column */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <RecentLogs />
           </div>
 
           {/* Right column */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <EmploymentStatus />
           </div>
         </div>
 
         {/* Second row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
           <AttendanceKPI />
           <AttendanceHeatmap />
         </div>
