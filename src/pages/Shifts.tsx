@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Clock, Users, Edit, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Clock, Users, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,8 +12,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateShiftModal } from "@/components/modals/CreateShiftModal";
+import { EditShiftModal } from "@/components/modals/EditShiftModal";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
-const shifts = [
+interface Shift {
+  id: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  breakTime: string;
+  employees: number;
+  status: string;
+}
+
+const initialShifts: Shift[] = [
   { id: 1, name: "Morning Shift", startTime: "06:00 AM", endTime: "02:00 PM", breakTime: "30 min", employees: 85, status: "Active" },
   { id: 2, name: "General Shift", startTime: "09:00 AM", endTime: "06:00 PM", breakTime: "60 min", employees: 120, status: "Active" },
   { id: 3, name: "Evening Shift", startTime: "02:00 PM", endTime: "10:00 PM", breakTime: "30 min", employees: 43, status: "Active" },
@@ -26,7 +38,11 @@ type SortField = "name" | "startTime" | "endTime" | "breakTime" | "employees" | 
 type SortDirection = "asc" | "desc" | null;
 
 const Shifts = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [shifts, setShifts] = useState<Shift[]>(initialShifts);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -53,6 +69,28 @@ const Shifts = () => {
       return <ChevronUp className="w-4 h-4 ml-1" />;
     }
     return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const handleEdit = (shift: Shift) => {
+    setSelectedShift(shift);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (shift: Shift) => {
+    setSelectedShift(shift);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedShift: Shift) => {
+    setShifts(shifts.map(s => s.id === updatedShift.id ? updatedShift : s));
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedShift) {
+      setShifts(shifts.filter(s => s.id !== selectedShift.id));
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedShift(null);
   };
 
   const filteredAndSortedData = shifts
@@ -87,7 +125,7 @@ const Shifts = () => {
             <h1 className="text-2xl font-semibold text-foreground">Shifts</h1>
             <p className="text-sm text-muted-foreground">Configure shift timings and rules</p>
           </div>
-          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Shift
           </Button>
@@ -166,12 +204,12 @@ const Shifts = () => {
                       {getSortIcon("status")}
                     </div>
                   </TableHead>
-                  <TableHead className="text-primary-foreground w-20">Actions</TableHead>
+                  <TableHead className="text-primary-foreground w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAndSortedData.map((shift) => (
-                  <TableRow key={shift.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow key={shift.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -197,11 +235,21 @@ const Shifts = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="w-8 h-8">
-                          <Edit className="w-4 h-4" />
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => handleEdit(shift)}
+                        >
+                          <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(shift)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -214,7 +262,20 @@ const Shifts = () => {
         </div>
       </main>
 
-      <CreateShiftModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <CreateShiftModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
+      <EditShiftModal 
+        open={isEditModalOpen} 
+        onOpenChange={setIsEditModalOpen} 
+        shift={selectedShift}
+        onSave={handleSaveEdit}
+      />
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        title="Delete Shift"
+        description={`Are you sure you want to delete "${selectedShift?.name}"? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

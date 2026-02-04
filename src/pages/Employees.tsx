@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Filter, Download, MoreHorizontal, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Filter, Download, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,8 +13,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AddEmployeeModal } from "@/components/modals/AddEmployeeModal";
+import { EditEmployeeModal } from "@/components/modals/EditEmployeeModal";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
-const employees = [
+interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  role: string;
+  status: string;
+  avatar: string;
+}
+
+const initialEmployees: Employee[] = [
   { id: "EMP001", name: "Priya Sharma", email: "priya.sharma@company.com", department: "Engineering", role: "Software Engineer", status: "Active", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" },
   { id: "EMP002", name: "Rahul Verma", email: "rahul.verma@company.com", department: "Engineering", role: "DevOps Engineer", status: "Active", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" },
   { id: "EMP003", name: "Sneha Patel", email: "sneha.patel@company.com", department: "Design", role: "UI/UX Designer", status: "Active", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" },
@@ -29,7 +41,11 @@ type SortField = "name" | "id" | "department" | "role" | "status";
 type SortDirection = "asc" | "desc" | null;
 
 const Employees = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -56,6 +72,28 @@ const Employees = () => {
       return <ChevronUp className="w-4 h-4 ml-1" />;
     }
     return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedEmployee: Employee) => {
+    setEmployees(employees.map(e => e.id === updatedEmployee.id ? updatedEmployee : e));
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedEmployee) {
+      setEmployees(employees.filter(e => e.id !== selectedEmployee.id));
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedEmployee(null);
   };
 
   const filteredAndSortedData = employees
@@ -91,7 +129,7 @@ const Employees = () => {
             <h1 className="text-2xl font-semibold text-foreground">Employees</h1>
             <p className="text-sm text-muted-foreground">Manage your organization's employees</p>
           </div>
-          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsAddModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Employee
           </Button>
@@ -171,12 +209,12 @@ const Employees = () => {
                       {getSortIcon("status")}
                     </div>
                   </TableHead>
-                  <TableHead className="text-primary-foreground w-10">Actions</TableHead>
+                  <TableHead className="text-primary-foreground w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAndSortedData.map((employee) => (
-                  <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow key={employee.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-9 h-9">
@@ -202,9 +240,24 @@ const Employees = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="w-8 h-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => handleEdit(employee)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(employee)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -214,7 +267,20 @@ const Employees = () => {
         </div>
       </main>
 
-      <AddEmployeeModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AddEmployeeModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+      <EditEmployeeModal 
+        open={isEditModalOpen} 
+        onOpenChange={setIsEditModalOpen} 
+        employee={selectedEmployee}
+        onSave={handleSaveEdit}
+      />
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        title="Delete Employee"
+        description={`Are you sure you want to delete "${selectedEmployee?.name}"? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

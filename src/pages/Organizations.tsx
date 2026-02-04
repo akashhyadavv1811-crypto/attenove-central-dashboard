@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Building, MapPin, Users, MoreHorizontal, LayoutGrid, List, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Building, MapPin, Users, LayoutGrid, List, ArrowUpDown, ChevronUp, ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddOrganizationModal } from "@/components/modals/AddOrganizationModal";
+import { EditOrganizationModal } from "@/components/modals/EditOrganizationModal";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 import {
   Table,
   TableBody,
@@ -13,7 +15,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const organizations = [
+interface Organization {
+  id: number;
+  name: string;
+  location: string;
+  employees: number;
+  devices: number;
+  status: string;
+}
+
+const initialOrganizations: Organization[] = [
   { id: 1, name: "Headquarters", location: "Mumbai, India", employees: 120, devices: 4, status: "Active" },
   { id: 2, name: "Tech Park Office", location: "Bangalore, India", employees: 85, devices: 3, status: "Active" },
   { id: 3, name: "Sales Office", location: "Delhi, India", employees: 32, devices: 2, status: "Active" },
@@ -26,7 +37,11 @@ type SortField = "name" | "location" | "employees" | "devices" | "status";
 type SortDirection = "asc" | "desc" | null;
 
 const Organizations = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -54,6 +69,28 @@ const Organizations = () => {
       return <ChevronUp className="w-4 h-4 ml-1" />;
     }
     return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const handleEdit = (org: Organization) => {
+    setSelectedOrganization(org);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (org: Organization) => {
+    setSelectedOrganization(org);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedOrg: Organization) => {
+    setOrganizations(organizations.map(o => o.id === updatedOrg.id ? updatedOrg : o));
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedOrganization) {
+      setOrganizations(organizations.filter(o => o.id !== selectedOrganization.id));
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedOrganization(null);
   };
 
   const filteredAndSortedData = organizations
@@ -87,7 +124,7 @@ const Organizations = () => {
             <h1 className="text-2xl font-semibold text-foreground">Organizations</h1>
             <p className="text-sm text-muted-foreground">Manage offices and biometric devices</p>
           </div>
-          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsAddModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Organization
           </Button>
@@ -143,9 +180,24 @@ const Organizations = () => {
                     }`}>
                       {org.status}
                     </span>
-                    <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-8 h-8 text-primary hover:text-primary hover:bg-primary/10"
+                        onClick={(e) => { e.stopPropagation(); handleEdit(org); }}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(org); }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
@@ -223,12 +275,12 @@ const Organizations = () => {
                         {getSortIcon("status")}
                       </div>
                     </TableHead>
-                    <TableHead className="text-primary-foreground">Actions</TableHead>
+                    <TableHead className="text-primary-foreground w-24">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedData.map((org) => (
-                    <TableRow key={org.id}>
+                    <TableRow key={org.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -253,9 +305,24 @@ const Organizations = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" className="w-8 h-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-8 h-8 text-primary hover:text-primary hover:bg-primary/10"
+                            onClick={() => handleEdit(org)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-8 h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDelete(org)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -266,7 +333,20 @@ const Organizations = () => {
         )}
       </main>
 
-      <AddOrganizationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AddOrganizationModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+      <EditOrganizationModal 
+        open={isEditModalOpen} 
+        onOpenChange={setIsEditModalOpen} 
+        organization={selectedOrganization}
+        onSave={handleSaveEdit}
+      />
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        title="Delete Organization"
+        description={`Are you sure you want to delete "${selectedOrganization?.name}"? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
