@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, X } from "lucide-react";
 
 interface AddEmployeeModalProps {
   open: boolean;
@@ -31,17 +33,46 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
     role: "",
     phone: "",
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission here
-    console.log("Employee data:", formData);
+    console.log("Employee data:", formData, "Photo:", photoPreview ? "uploaded" : "none");
     onOpenChange(false);
     setFormData({ name: "", email: "", department: "", role: "", phone: "" });
+    setPhotoPreview(null);
+  };
+
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      setFormData({ name: "", email: "", department: "", role: "", phone: "" });
+      setPhotoPreview(null);
+    }
+    onOpenChange(isOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add New Employee</DialogTitle>
@@ -51,6 +82,47 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            {/* Photo Upload */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <Avatar className="w-20 h-20 border-2 border-dashed border-muted-foreground/50">
+                  <AvatarImage src={photoPreview || undefined} />
+                  <AvatarFallback className="bg-muted">
+                    <Camera className="w-8 h-8 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                {photoPreview && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-1 -right-1 w-6 h-6 rounded-full"
+                    onClick={handleRemovePhoto}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="photo-upload"
+                  onChange={handlePhotoChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoPreview ? "Change Photo" : "Upload Photo"}
+                </Button>
+              </div>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -115,7 +187,7 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
             <Button type="submit">Add Employee</Button>
