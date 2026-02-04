@@ -95,7 +95,7 @@ export function Header() {
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-primary border-accent p-0">
+            <SheetContent side="top" className="bg-primary border-accent p-0">
               <div className="flex flex-col h-full">
                 {/* User Info */}
                 <div className="p-4 border-b border-accent">
