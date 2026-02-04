@@ -15,12 +15,12 @@ export function Header() {
   const location = useLocation();
   
   return (
-    <header className="px-6 py-2.5" style={{ backgroundColor: '#1e3a34' }}>
+    <header className="px-6 py-2.5 bg-primary">
       <div className="flex items-center justify-between">
         {/* Logo and Nav */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#2d524a' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-accent">
               <Clock className="w-4 h-4 text-white" />
             </div>
             <span className="text-white font-semibold text-base">Attenove</span>
@@ -37,8 +37,8 @@ export function Header() {
                     className={`
                       flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-all h-8
                       ${isActive 
-                        ? "bg-[#2d524a] text-white" 
-                        : "text-white/70 hover:text-white hover:bg-[#2d524a]/50"
+                        ? "bg-accent text-white" 
+                        : "text-white/70 hover:text-white hover:bg-accent/50"
                       }
                     `}
                   >
@@ -56,18 +56,18 @@ export function Header() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white/70 hover:text-white hover:bg-[#2d524a]/50 h-8 w-8"
+            className="text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
           >
             <Settings className="w-4 h-4" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white/70 hover:text-white hover:bg-[#2d524a]/50 h-8 w-8"
+            className="text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
           >
             <Bell className="w-4 h-4" />
           </Button>
-          <div className="flex items-center gap-2.5 pl-3 border-l border-[#2d524a]">
+          <div className="flex items-center gap-2.5 pl-3 border-l border-accent">
             <Avatar className="w-8 h-8">
               <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" />
               <AvatarFallback>AK</AvatarFallback>
