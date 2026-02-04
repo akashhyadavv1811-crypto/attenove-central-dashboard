@@ -1,9 +1,12 @@
-import { Bell, Settings, LayoutDashboard, Users, Building2, Clock, FileText, Menu, X, Shield } from "lucide-react";
+import { Bell, Settings, LayoutDashboard, Users, Building2, FileText, Menu, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import attenovaLogo from "@/assets/attenova-logo.png";
+
+import { Clock } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
@@ -24,9 +27,7 @@ export function Header() {
         {/* Logo and Nav */}
         <div className="flex items-center gap-4 md:gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-accent">
-              <Clock className="w-4 h-4 text-white" />
-            </div>
+            <img src={attenovaLogo} alt="Attenova" className="w-7 h-7 object-contain" />
             <span className="text-white font-semibold text-base">Attenova</span>
           </div>
 
