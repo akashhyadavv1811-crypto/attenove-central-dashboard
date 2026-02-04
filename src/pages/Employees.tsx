@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Search, Plus, Filter, Download, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, Plus, Filter, Download, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -12,9 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { AddEmployeeModal } from "@/components/modals/AddEmployeeModal";
 import { EditEmployeeModal } from "@/components/modals/EditEmployeeModal";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
+import { format } from "date-fns";
 
 interface Employee {
   id: string;
@@ -49,6 +57,12 @@ const Employees = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [departmentFilters, setDepartmentFilters] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const allStatuses = Array.from(new Set(employees.map(e => e.status)));
+  const allDepartments = Array.from(new Set(employees.map(e => e.department)));
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -96,17 +110,51 @@ const Employees = () => {
     setSelectedEmployee(null);
   };
 
+  const toggleStatusFilter = (status: string) => {
+    setStatusFilters(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const toggleDepartmentFilter = (dept: string) => {
+    setDepartmentFilters(prev => 
+      prev.includes(dept) 
+        ? prev.filter(d => d !== dept)
+        : [...prev, dept]
+    );
+  };
+
+  const clearFilters = () => {
+    setStatusFilters([]);
+    setDepartmentFilters([]);
+  };
+
+  const hasActiveFilters = statusFilters.length > 0 || departmentFilters.length > 0;
+
   const filteredAndSortedData = employees
     .filter((emp) => {
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        emp.name.toLowerCase().includes(query) ||
-        emp.id.toLowerCase().includes(query) ||
-        emp.department.toLowerCase().includes(query) ||
-        emp.role.toLowerCase().includes(query) ||
-        emp.status.toLowerCase().includes(query)
-      );
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          emp.name.toLowerCase().includes(query) ||
+          emp.id.toLowerCase().includes(query) ||
+          emp.department.toLowerCase().includes(query) ||
+          emp.role.toLowerCase().includes(query) ||
+          emp.status.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+      // Status filter
+      if (statusFilters.length > 0 && !statusFilters.includes(emp.status)) {
+        return false;
+      }
+      // Department filter
+      if (departmentFilters.length > 0 && !departmentFilters.includes(emp.department)) {
+        return false;
+      }
+      return true;
     })
     .sort((a, b) => {
       if (!sortField || !sortDirection) return 0;
@@ -117,6 +165,28 @@ const Employees = () => {
       }
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
+
+  const exportToCSV = () => {
+    const headers = ["Emp ID", "Name", "Email", "Department", "Role", "Status"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredAndSortedData.map(emp => 
+        [emp.id, emp.name, emp.email, emp.department, emp.role, emp.status].join(",")
+      )
+    ];
+    
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    link.href = url;
+    link.download = `Employees_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,15 +217,83 @@ const Employees = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
+            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filter
+                  {hasActiveFilters && (
+                    <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
+                      {statusFilters.length + departmentFilters.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="start">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Filters</h4>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
+                        Clear all
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
+                    {allStatuses.map(status => (
+                      <div key={status} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`status-${status}`}
+                          checked={statusFilters.includes(status)}
+                          onCheckedChange={() => toggleStatusFilter(status)}
+                        />
+                        <label htmlFor={`status-${status}`} className="text-sm cursor-pointer">{status}</label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Department</Label>
+                    {allDepartments.map(dept => (
+                      <div key={dept} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`dept-${dept}`}
+                          checked={departmentFilters.includes(dept)}
+                          onCheckedChange={() => toggleDepartmentFilter(dept)}
+                        />
+                        <label htmlFor={`dept-${dept}`} className="text-sm cursor-pointer">{dept}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
+
+          {/* Active filter chips */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">Active filters:</span>
+              {statusFilters.map(status => (
+                <span key={status} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {status}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleStatusFilter(status)} />
+                </span>
+              ))}
+              {departmentFilters.map(dept => (
+                <span key={dept} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {dept}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleDepartmentFilter(dept)} />
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Employees Table */}
