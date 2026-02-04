@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
-import { Download, Calendar, FileText } from "lucide-react";
+import { Download, Calendar, FileText, Search, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -47,10 +48,60 @@ const reportData = [
   { id: 8, empCode: "EMP008", name: "Jennifer Martinez", date: "2024-02-04", checkIn: "09:05 AM", checkOut: "06:10 PM", status: "Present", hoursWorked: "9h 05m" },
 ];
 
+type SortField = "empCode" | "name" | "date" | "checkIn" | "checkOut" | "status" | "hoursWorked";
+type SortDirection = "asc" | "desc" | null;
+
 const Reports = () => {
   const [selectedReportType, setSelectedReportType] = useState<string>("daily-attendance");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    }
+    if (sortDirection === "asc") {
+      return <ChevronUp className="w-4 h-4 ml-1" />;
+    }
+    return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const filteredAndSortedData = reportData
+    .filter((row) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        row.empCode.toLowerCase().includes(query) ||
+        row.name.toLowerCase().includes(query) ||
+        row.status.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => {
+      if (!sortField || !sortDirection) return 0;
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      if (sortDirection === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      }
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,6 +200,17 @@ const Reports = () => {
             </PopoverContent>
           </Popover>
 
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, code, status..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 w-[250px]"
+            />
+          </div>
+
           {/* Export Button */}
           <Button className="ml-auto">
             <Download className="w-4 h-4 mr-2" />
@@ -193,21 +255,77 @@ const Reports = () => {
             </p>
           </div>
           
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Emp Code</TableHead>
-                  <TableHead>Employee Name</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Check In</TableHead>
-                  <TableHead>Check Out</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Hours Worked</TableHead>
+                <TableRow className="bg-primary hover:bg-primary">
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("empCode")}
+                  >
+                    <div className="flex items-center">
+                      Emp Code
+                      {getSortIcon("empCode")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center">
+                      Employee Name
+                      {getSortIcon("name")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("date")}
+                  >
+                    <div className="flex items-center">
+                      Date
+                      {getSortIcon("date")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("checkIn")}
+                  >
+                    <div className="flex items-center">
+                      Check In
+                      {getSortIcon("checkIn")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("checkOut")}
+                  >
+                    <div className="flex items-center">
+                      Check Out
+                      {getSortIcon("checkOut")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      {getSortIcon("status")}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-primary-foreground cursor-pointer select-none"
+                    onClick={() => handleSort("hoursWorked")}
+                  >
+                    <div className="flex items-center">
+                      Hours Worked
+                      {getSortIcon("hoursWorked")}
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reportData.map((row) => (
+                {filteredAndSortedData.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.empCode}</TableCell>
                     <TableCell>{row.name}</TableCell>
