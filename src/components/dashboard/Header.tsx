@@ -32,7 +32,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-0.5">
+          <nav className="hidden xl:flex items-center gap-0.5">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -62,18 +62,18 @@ export function Header() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="hidden md:flex text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
+            className="hidden xl:flex text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
           >
             <Settings className="w-4 h-4" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="hidden md:flex text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
+            className="hidden xl:flex text-white/70 hover:text-white hover:bg-accent/50 h-8 w-8"
           >
             <Bell className="w-4 h-4" />
           </Button>
-          <div className="hidden md:flex items-center gap-2.5 pl-3 border-l border-accent">
+          <div className="hidden xl:flex items-center gap-2.5 pl-3 border-l border-accent">
             <Avatar className="w-8 h-8">
               <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" />
               <AvatarFallback>AK</AvatarFallback>
@@ -90,7 +90,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="md:hidden text-white hover:bg-accent/50 h-8 w-8"
+                className="xl:hidden text-white hover:bg-accent/50 h-8 w-8"
               >
                 <Menu className="w-5 h-5" />
               </Button>
