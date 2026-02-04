@@ -10,13 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, X } from "lucide-react";
 
@@ -29,7 +22,7 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    department: "",
+    empCode: "",
     role: "",
     phone: "",
   });
@@ -59,13 +52,13 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
     // Handle form submission here
     console.log("Employee data:", formData, "Photo:", photoPreview ? "uploaded" : "none");
     onOpenChange(false);
-    setFormData({ name: "", email: "", department: "", role: "", phone: "" });
+    setFormData({ name: "", email: "", empCode: "", role: "", phone: "" });
     setPhotoPreview(null);
   };
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
-      setFormData({ name: "", email: "", department: "", role: "", phone: "" });
+      setFormData({ name: "", email: "", empCode: "", role: "", phone: "" });
       setPhotoPreview(null);
     }
     onOpenChange(isOpen);
@@ -156,23 +149,14 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="department">Department</Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => setFormData({ ...formData, department: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="design">Design</SelectItem>
-                    <SelectItem value="management">Management</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="empCode">Emp Code</Label>
+                <Input
+                  id="empCode"
+                  placeholder="e.g. EMP001"
+                  value={formData.empCode}
+                  onChange={(e) => setFormData({ ...formData, empCode: e.target.value })}
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="role">Role</Label>
