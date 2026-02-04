@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Search, Plus, Filter, Download, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AddEmployeeModal } from "@/components/modals/AddEmployeeModal";
 
 const employees = [
   { id: "EMP001", name: "Priya Sharma", email: "priya.sharma@company.com", department: "Engineering", role: "Software Engineer", status: "Active", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" },
@@ -24,6 +26,8 @@ const employees = [
 ];
 
 const Employees = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -35,7 +39,7 @@ const Employees = () => {
             <h1 className="text-2xl font-semibold text-foreground">Employees</h1>
             <p className="text-sm text-muted-foreground">Manage your organization's employees</p>
           </div>
-          <Button className="bg-primary text-primary-foreground">
+          <Button className="bg-primary text-primary-foreground" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Employee
           </Button>
@@ -110,6 +114,8 @@ const Employees = () => {
           </Table>
         </div>
       </main>
+
+      <AddEmployeeModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
   );
 };
