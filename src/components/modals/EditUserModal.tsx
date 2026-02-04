@@ -131,14 +131,14 @@ export const EditUserModal = ({ isOpen, onClose, onSave, user, roles, modules }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="max-w-4xl h-[90vh] max-h-[90vh] flex flex-col min-h-0 overflow-hidden">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>Modify user details and permissions.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <ScrollArea className="flex-1 min-h-0 pr-4">
+          <ScrollArea type="always" className="flex-1 min-h-0 h-full pr-4">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
