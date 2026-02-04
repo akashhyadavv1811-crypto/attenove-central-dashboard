@@ -1,4 +1,4 @@
-import { Bell, Settings, LayoutDashboard, Users, Building2, Clock, FileText, Menu, X } from "lucide-react";
+import { Bell, Settings, LayoutDashboard, Users, Building2, Clock, FileText, Menu, X, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -11,6 +11,7 @@ const navItems = [
   { label: "Organizations", icon: Building2, path: "/organizations" },
   { label: "Shifts", icon: Clock, path: "/shifts" },
   { label: "Reports", icon: FileText, path: "/reports" },
+  { label: "Access Control", icon: Shield, path: "/access-control" },
 ];
 
 export function Header() {
@@ -26,7 +27,7 @@ export function Header() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-accent">
               <Clock className="w-4 h-4 text-white" />
             </div>
-            <span className="text-white font-semibold text-base">Attenove</span>
+            <span className="text-white font-semibold text-base">Attenova</span>
           </div>
 
           {/* Desktop Navigation */}
