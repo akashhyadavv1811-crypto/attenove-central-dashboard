@@ -170,7 +170,7 @@ export function AddEmployeeModal({ open, onOpenChange }: AddEmployeeModalProps) 
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-row justify-between sm:justify-between">
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
