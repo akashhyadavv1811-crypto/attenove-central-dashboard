@@ -86,7 +86,7 @@ export function AddOrganizationModal({ open, onOpenChange }: AddOrganizationModa
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-row justify-between sm:justify-between">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

@@ -120,7 +120,7 @@ export function CreateShiftModal({ open, onOpenChange }: CreateShiftModalProps) 
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-row justify-between sm:justify-between">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
