@@ -2,95 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Attenove Design System - Dark Teal/Sage Enterprise Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core brand colors - Dark teal/green palette */
+    --background: 140 20% 95%;
+    --foreground: 160 30% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 160 30% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 160 30% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Dark teal */
+    --primary: 160 35% 18%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Soft sage */
+    --secondary: 145 25% 88%;
+    --secondary-foreground: 160 35% 18%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 140 15% 90%;
+    --muted-foreground: 160 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Medium teal */
+    --accent: 160 30% 25%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 140 15% 85%;
+    --input: 140 15% 85%;
+    --ring: 160 35% 25%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom semantic tokens */
+    --hero-bg: 160 35% 18%;
+    --hero-card-bg: 160 30% 22%;
+    --hero-card-border: 160 25% 30%;
+    --success: 152 60% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Status colors */
+    --status-present: 152 60% 42%;
+    --status-absent: 0 72% 51%;
+    --status-late: 38 92% 50%;
+    --status-leave: 210 70% 55%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Chart colors */
+    --chart-1: 160 35% 25%;
+    --chart-2: 152 60% 42%;
+    --chart-3: 160 30% 35%;
+    --chart-4: 145 25% 70%;
+    --chart-5: 140 20% 85%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 160 35% 18%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 160 35% 18%;
+    --sidebar-accent: 160 30% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 160 25% 30%;
+    --sidebar-ring: 160 35% 25%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 160 30% 8%;
+    --foreground: 140 20% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 160 30% 12%;
+    --card-foreground: 140 20% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 160 30% 12%;
+    --popover-foreground: 140 20% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 152 60% 50%;
+    --primary-foreground: 160 30% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 160 25% 20%;
+    --secondary-foreground: 140 20% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 160 25% 18%;
+    --muted-foreground: 140 15% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 152 50% 40%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 160 25% 20%;
+    --input: 160 25% 20%;
+    --ring: 152 60% 50%;
+
+    --hero-bg: 160 30% 12%;
+    --hero-card-bg: 160 25% 16%;
+    --hero-card-border: 160 20% 25%;
+
+    --sidebar-background: 160 30% 8%;
+    --sidebar-foreground: 140 20% 95%;
+    --sidebar-primary: 152 60% 50%;
+    --sidebar-primary-foreground: 160 30% 8%;
+    --sidebar-accent: 160 25% 18%;
+    --sidebar-accent-foreground: 140 20% 95%;
+    --sidebar-border: 160 25% 20%;
+    --sidebar-ring: 152 60% 50%;
   }
 }
 
@@ -100,6 +124,89 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Hero section styles */
+  .hero-section {
+    @apply bg-primary text-primary-foreground;
+    background: linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(160 30% 22%) 100%);
+  }
+
+  /* Stats card on hero */
+  .hero-stat-card {
+    @apply rounded-xl p-4 border transition-all duration-200;
+    background: hsl(var(--hero-card-bg));
+    border-color: hsl(var(--hero-card-border));
+  }
+
+  .hero-stat-card:hover {
+    background: hsl(160 28% 26%);
+  }
+
+  /* Dashboard widget cards */
+  .widget-card {
+    @apply bg-card rounded-xl p-5 shadow-sm border border-border;
+  }
+
+  /* Status badges */
+  .badge-success {
+    @apply text-xs font-medium px-2 py-0.5 rounded-full;
+    background: hsl(var(--status-present) / 0.15);
+    color: hsl(var(--status-present));
+  }
+
+  .badge-danger {
+    @apply text-xs font-medium px-2 py-0.5 rounded-full;
+    background: hsl(var(--destructive) / 0.15);
+    color: hsl(var(--destructive));
+  }
+
+  .badge-warning {
+    @apply text-xs font-medium px-2 py-0.5 rounded-full;
+    background: hsl(var(--warning) / 0.15);
+    color: hsl(var(--warning));
+  }
+
+  /* Navigation active state */
+  .nav-item-active {
+    @apply bg-accent text-accent-foreground rounded-lg;
+  }
+
+  /* Heatmap cell */
+  .heatmap-cell {
+    @apply w-3 h-3 rounded-sm transition-colors;
+  }
+
+  .heatmap-level-0 { @apply bg-muted; }
+  .heatmap-level-1 { background: hsl(var(--chart-5)); }
+  .heatmap-level-2 { background: hsl(var(--chart-4)); }
+  .heatmap-level-3 { background: hsl(var(--chart-3)); }
+  .heatmap-level-4 { background: hsl(var(--chart-2)); }
+  .heatmap-level-5 { background: hsl(var(--chart-1)); }
+}
+
+@layer utilities {
+  .text-hero {
+    color: hsl(var(--primary-foreground));
+  }
+
+  .bg-hero {
+    background: hsl(var(--hero-bg));
+  }
+
+  .text-success {
+    color: hsl(var(--success));
+  }
+
+  .text-warning {
+    color: hsl(var(--warning));
   }
 }

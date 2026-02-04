@@ -1,12 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Header } from "@/components/dashboard/Header";
+import { HeroSection } from "@/components/dashboard/HeroSection";
+import { ActiveShifts } from "@/components/dashboard/ActiveShifts";
+import { RecentLogs } from "@/components/dashboard/RecentLogs";
+import { EmploymentStatus } from "@/components/dashboard/EmploymentStatus";
+import { AttendanceKPI } from "@/components/dashboard/AttendanceKPI";
+import { AttendanceHeatmap } from "@/components/dashboard/AttendanceHeatmap";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <HeroSection />
+      
+      <main className="px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column */}
+          <div className="space-y-6">
+            <ActiveShifts />
+          </div>
+
+          {/* Middle column */}
+          <div className="space-y-6">
+            <RecentLogs />
+          </div>
+
+          {/* Right column */}
+          <div className="space-y-6">
+            <EmploymentStatus />
+          </div>
+        </div>
+
+        {/* Second row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <AttendanceKPI />
+          <AttendanceHeatmap />
+        </div>
+      </main>
     </div>
   );
 };
