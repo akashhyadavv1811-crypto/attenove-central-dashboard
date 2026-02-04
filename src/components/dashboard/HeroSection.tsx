@@ -42,28 +42,45 @@ export function HeroSection() {
 
   return (
     <section className="relative">
-      {/* Green background section */}
-      <div className="relative overflow-hidden bg-primary pb-20">
-        {/* Curved overlay on the right */}
+      {/* Green background section with curved overlay */}
+      <div className="relative overflow-hidden pb-20" style={{ backgroundColor: '#1e3a34' }}>
+        {/* Main curved overlay from top-right */}
         <div 
-          className="absolute right-0 top-0 h-full w-2/5 pointer-events-none"
+          className="absolute pointer-events-none"
           style={{
-            background: 'linear-gradient(145deg, transparent 0%, rgba(140, 155, 145, 0.25) 40%, rgba(160, 175, 165, 0.4) 100%)',
-            borderBottomLeftRadius: '50% 80%',
+            top: '-50%',
+            right: '-10%',
+            width: '70%',
+            height: '200%',
+            background: 'radial-gradient(ellipse at center, rgba(156, 169, 158, 0.35) 0%, rgba(140, 155, 145, 0.2) 40%, transparent 70%)',
+            transform: 'rotate(-15deg)',
+          }}
+        />
+        
+        {/* Secondary subtle curve */}
+        <div 
+          className="absolute pointer-events-none"
+          style={{
+            top: '-20%',
+            right: '5%',
+            width: '50%',
+            height: '150%',
+            background: 'radial-gradient(ellipse at center, rgba(180, 190, 175, 0.2) 0%, transparent 60%)',
+            transform: 'rotate(-25deg)',
           }}
         />
         
         <div className="relative px-6 py-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-primary-foreground/60 text-sm mb-0.5">{getGreeting()},</p>
-              <h1 className="text-2xl font-semibold text-primary-foreground">Arun Kumar</h1>
+              <p className="text-sm mb-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{getGreeting()},</p>
+              <h1 className="text-2xl font-semibold text-white">Arun Kumar</h1>
             </div>
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline" 
                 size="sm"
-                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-accent/50 h-9 px-3"
+                className="bg-transparent border-white/30 text-white hover:bg-white/10 h-9 px-3"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 2024
