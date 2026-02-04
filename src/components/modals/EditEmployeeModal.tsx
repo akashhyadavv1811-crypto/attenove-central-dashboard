@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -16,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, X } from "lucide-react";
 
 interface Employee {
   id: string;
@@ -42,6 +45,8 @@ export function EditEmployeeModal({ open, onOpenChange, employee, onSave }: Edit
     role: "",
     status: "Active",
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (employee) {
@@ -52,8 +57,27 @@ export function EditEmployeeModal({ open, onOpenChange, employee, onSave }: Edit
         role: employee.role,
         status: employee.status,
       });
+      setPhotoPreview(employee.avatar || null);
     }
   }, [employee]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,18 +85,77 @@ export function EditEmployeeModal({ open, onOpenChange, employee, onSave }: Edit
       onSave({
         ...employee,
         ...formData,
+        avatar: photoPreview || employee.avatar,
       });
     }
     onOpenChange(false);
   };
 
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen && employee) {
+      setFormData({
+        name: employee.name,
+        email: employee.email,
+        department: employee.department,
+        role: employee.role,
+        status: employee.status,
+      });
+      setPhotoPreview(employee.avatar || null);
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Employee</DialogTitle>
+          <DialogDescription>
+            Update the employee details below.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Photo Upload */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <Avatar className="w-20 h-20 border-2 border-dashed border-muted-foreground/50">
+                <AvatarImage src={photoPreview || undefined} />
+                <AvatarFallback className="bg-muted">
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              {photoPreview && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full"
+                  onClick={handleRemovePhoto}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="edit-photo-upload"
+                onChange={handlePhotoChange}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {photoPreview ? "Change Photo" : "Upload Photo"}
+              </Button>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="edit-emp-name">Full Name</Label>
             <Input
@@ -126,7 +209,7 @@ export function EditEmployeeModal({ open, onOpenChange, employee, onSave }: Edit
             </Select>
           </div>
           <DialogFooter className="flex flex-row justify-between sm:justify-between">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
             <Button type="submit">Save Changes</Button>
