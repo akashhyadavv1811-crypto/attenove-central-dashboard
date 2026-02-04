@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -9,18 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Organization {
   id: number;
   name: string;
   location: string;
+  address?: string;
   employees: number;
   devices: number;
   status: string;
@@ -37,8 +33,8 @@ export function EditOrganizationModal({ open, onOpenChange, organization, onSave
   const [formData, setFormData] = useState({
     name: "",
     location: "",
-    devices: 0,
-    status: "Active",
+    address: "",
+    devices: "",
   });
 
   useEffect(() => {
@@ -46,8 +42,8 @@ export function EditOrganizationModal({ open, onOpenChange, organization, onSave
       setFormData({
         name: organization.name,
         location: organization.location,
-        devices: organization.devices,
-        status: organization.status,
+        address: organization.address || "",
+        devices: organization.devices.toString(),
       });
     }
   }, [organization]);
@@ -57,63 +53,82 @@ export function EditOrganizationModal({ open, onOpenChange, organization, onSave
     if (organization) {
       onSave({
         ...organization,
-        ...formData,
+        name: formData.name,
+        location: formData.location,
+        address: formData.address,
+        devices: parseInt(formData.devices) || 0,
       });
     }
     onOpenChange(false);
   };
 
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen && organization) {
+      setFormData({
+        name: organization.name,
+        location: organization.location,
+        address: organization.address || "",
+        devices: organization.devices.toString(),
+      });
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Organization</DialogTitle>
+          <DialogDescription>
+            Update the organization details below.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-org-name">Organization Name</Label>
-            <Input
-              id="edit-org-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter organization name"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-org-location">Location</Label>
-            <Input
-              id="edit-org-location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Enter location"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-org-devices">Number of Devices</Label>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-org-name">Organization Name</Label>
               <Input
-                id="edit-org-devices"
-                type="number"
-                value={formData.devices}
-                onChange={(e) => setFormData({ ...formData, devices: parseInt(e.target.value) || 0 })}
-                placeholder="Enter device count"
+                id="edit-org-name"
+                placeholder="e.g. Headquarters, Tech Park Office"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-org-status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-location">City/Location</Label>
+              <Input
+                id="edit-location"
+                placeholder="e.g. Mumbai, India"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-address">Full Address</Label>
+              <Textarea
+                id="edit-address"
+                placeholder="Enter complete address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-devices">Number of Biometric Devices</Label>
+              <Input
+                id="edit-devices"
+                type="number"
+                placeholder="e.g. 2"
+                min="1"
+                value={formData.devices}
+                onChange={(e) => setFormData({ ...formData, devices: e.target.value })}
+              />
             </div>
           </div>
           <DialogFooter className="flex flex-row justify-between sm:justify-between">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
             <Button type="submit">Save Changes</Button>
