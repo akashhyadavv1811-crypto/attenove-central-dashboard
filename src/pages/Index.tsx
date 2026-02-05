@@ -12,7 +12,7 @@ const Index = () => {
       <Header />
       <HeroSection />
       
-      <main className="px-6 py-6 pt-4">
+      <main className="px-6 py-6 pt-4 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Left column */}
           <div className="space-y-5">
