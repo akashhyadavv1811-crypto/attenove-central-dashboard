@@ -1,5 +1,6 @@
 import { Calendar, ArrowUpRight, Users, UserCheck, UserX, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const stats = [
   {
@@ -33,12 +34,14 @@ const stats = [
 ];
 
 export function HeroSection() {
+  const { user } = useAuth();
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
   };
+  const displayName = user?.name ?? "User";
 
   return (
     <section className="relative">
@@ -74,7 +77,7 @@ export function HeroSection() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm mb-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>{getGreeting()},</p>
-              <h1 className="text-2xl font-semibold text-white">Arun Kumar</h1>
+              <h1 className="text-2xl font-semibold text-white">{displayName}</h1>
             </div>
             <div className="flex items-center gap-3">
               <Button 

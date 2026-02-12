@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Search, Plus, Building, MapPin, Users, LayoutGrid, List, ArrowUpDown, ChevronUp, ChevronDown, Pencil, Trash2, Filter, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { AddOrganizationModal } from "@/components/modals/AddOrganizationModal";
-import { EditOrganizationModal } from "@/components/modals/EditOrganizationModal";
+import {
+  OrganizationModal,
+  type CreatedOrgFormData,
+  type Organization,
+} from "@/components/modals/OrganizationModal";
+import type { CreateOrganizationResponse } from "@/lib/api";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 import {
   Popover,
@@ -22,32 +26,56 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { fetchOrganizations, deleteOrganization } from "@/lib/api";
+import type { ApiOrganization } from "@/lib/api";
+import { toast } from "sonner";
 
-interface Organization {
-  id: number;
-  name: string;
-  location: string;
-  employees: number;
-  devices: number;
-  status: string;
+function apiToOrg(api: ApiOrganization): Organization {
+  return {
+    id: api.id,
+    name: api.name,
+    location: api.city ? [api.city, api.state, api.country].filter(Boolean).join(", ") || "-" : "-",
+    employees: 0,
+    devices: 0,
+    status: api.is_active !== false ? "Active" : "Inactive",
+    address: api.address,
+    city: api.city,
+    state: api.state,
+    country: api.country,
+    pincode: api.pincode,
+    phone_number: api.phone_number,
+    email: api.email,
+    owner: api.owner,
+  };
 }
 
-const initialOrganizations: Organization[] = [
-  { id: 1, name: "Headquarters", location: "Mumbai, India", employees: 120, devices: 4, status: "Active" },
-  { id: 2, name: "Tech Park Office", location: "Bangalore, India", employees: 85, devices: 3, status: "Active" },
-  { id: 3, name: "Sales Office", location: "Delhi, India", employees: 32, devices: 2, status: "Active" },
-  { id: 4, name: "Support Center", location: "Hyderabad, India", employees: 45, devices: 2, status: "Inactive" },
-  { id: 5, name: "R&D Center", location: "Pune, India", employees: 28, devices: 2, status: "Active" },
-  { id: 6, name: "Branch Office", location: "Chennai, India", employees: 18, devices: 1, status: "Active" },
-];
+function buildOrgFromCreate(response: CreateOrganizationResponse, form: CreatedOrgFormData): Organization {
+  const location = [form.orgCity, form.orgState, form.orgCountry].filter(Boolean).join(", ") || "-";
+  return {
+    id: response.organization_id,
+    name: form.orgName.trim(),
+    location,
+    employees: 0,
+    devices: 0,
+    status: "Active",
+    address: form.orgAddress.trim() || undefined,
+    city: form.orgCity.trim() || undefined,
+    state: form.orgState.trim() || undefined,
+    country: form.orgCountry.trim() || undefined,
+    pincode: form.orgPincode.trim() || undefined,
+    phone_number: form.orgPhone.trim() || undefined,
+    email: form.orgEmail.trim() || undefined,
+  };
+}
 
 type SortField = "name" | "location" | "employees" | "devices" | "status";
 type SortDirection = "asc" | "desc" | null;
 
 const Organizations = () => {
-  const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
@@ -57,6 +85,23 @@ const Organizations = () => {
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [locationFilters, setLocationFilters] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const loadOrganizations = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const list = await fetchOrganizations();
+      setOrganizations(list.map(apiToOrg));
+    } catch {
+      setOrganizations([]);
+      toast.error("Failed to load organizations.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOrganizations();
+  }, [loadOrganizations]);
 
   const allStatuses = Array.from(new Set(organizations.map(o => o.status)));
   const allLocations = Array.from(new Set(organizations.map(o => o.location)));
@@ -87,7 +132,8 @@ const Organizations = () => {
 
   const handleEdit = (org: Organization) => {
     setSelectedOrganization(org);
-    setIsEditModalOpen(true);
+    setModalMode("edit");
+    setIsModalOpen(true);
   };
 
   const handleDelete = (org: Organization) => {
@@ -95,13 +141,18 @@ const Organizations = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleSaveEdit = (updatedOrg: Organization) => {
-    setOrganizations(organizations.map(o => o.id === updatedOrg.id ? updatedOrg : o));
+  const handleEditSave = (updatedOrg: Organization) => {
+    setOrganizations(organizations.map((o) => (o.id === updatedOrg.id ? updatedOrg : o)));
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedOrganization) {
+  const handleConfirmDelete = async () => {
+    if (!selectedOrganization) return;
+    try {
+      await deleteOrganization(selectedOrganization.id);
       setOrganizations(organizations.filter(o => o.id !== selectedOrganization.id));
+      toast.success("Organization deleted.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete.");
     }
     setIsDeleteModalOpen(false);
     setSelectedOrganization(null);
@@ -183,6 +234,17 @@ const Organizations = () => {
     URL.revokeObjectURL(url);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="px-6 py-6 flex items-center justify-center min-h-[40vh]">
+          <p className="text-muted-foreground text-sm">Loading organizations...</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -194,7 +256,14 @@ const Organizations = () => {
             <h1 className="text-2xl font-semibold text-foreground">Organizations</h1>
             <p className="text-sm text-muted-foreground">Manage offices and biometric devices</p>
           </div>
-          <Button className="bg-primary text-primary-foreground" onClick={() => setIsAddModalOpen(true)}>
+          <Button
+            className="bg-primary text-primary-foreground"
+            onClick={() => {
+              setModalMode("add");
+              setSelectedOrganization(null);
+              setIsModalOpen(true);
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Organization
           </Button>
@@ -317,7 +386,7 @@ const Organizations = () => {
         {viewMode === "card" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredAndSortedData.map((org) => (
-              <div key={org.id} className="widget-card hover:shadow-md transition-shadow cursor-pointer group">
+              <div key={org.id} className="widget-card hover:shadow-md transition-shadow cursor-pointer">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Building className="w-6 h-6 text-primary" />
@@ -328,7 +397,7 @@ const Organizations = () => {
                     }`}>
                       {org.status}
                     </span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -481,12 +550,15 @@ const Organizations = () => {
         )}
       </main>
 
-      <AddOrganizationModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
-      <EditOrganizationModal 
-        open={isEditModalOpen} 
-        onOpenChange={setIsEditModalOpen} 
+      <OrganizationModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        mode={modalMode}
         organization={selectedOrganization}
-        onSave={handleSaveEdit}
+        onAddSuccess={(response, orgFormData) => {
+          setOrganizations((prev) => [...prev, buildOrgFromCreate(response, orgFormData)]);
+        }}
+        onEditSave={handleEditSave}
       />
       <DeleteConfirmationModal
         open={isDeleteModalOpen}

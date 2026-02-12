@@ -32,9 +32,22 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: (Optional) Configure the Django API base URL for authentication.
+# Copy .env.example to .env and set VITE_API_BASE_URL to your backend URL (e.g. http://localhost:8000).
+# If unset, API requests use the same origin.
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+**Authentication**
+
+The app uses token-based auth with a Django backend:
+
+- **Login**: `POST /api/auth/login/` with `{ email, password }` → store token and user, then redirect.
+- **Session restore**: On load, if a token exists, `GET /api/auth/me/` is called; on 401 the token is cleared and the user is sent to the login page.
+- **Protected routes**: Dashboard routes require a valid session; otherwise the user is redirected to `/login`.
+- Set `VITE_API_BASE_URL` in `.env` (see `.env.example`) to point to your Django API.
 
 **Edit a file directly in GitHub**
 

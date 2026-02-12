@@ -10,111 +10,96 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { updateShift, type ApiShift, type UpdateShiftPayload } from "@/lib/api";
 
-interface Shift {
+export interface ShiftForEdit {
   id: number;
+  officeId: number;
+  officeName?: string;
   name: string;
   startTime: string;
   endTime: string;
-  breakTime: string;
-  employees: number;
+  graceMinutes: number;
+  isNightShift: boolean;
+  isActive: boolean;
   status: string;
-  type?: string;
 }
 
 interface EditShiftModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shift: Shift | null;
-  onSave: (shift: Shift) => void;
+  shift: ShiftForEdit | null;
+  onSave: (updated: ApiShift) => void;
 }
 
-// Helper to convert "09:00 AM" format to "09:00" for time input
-const convertToTimeInput = (timeStr: string): string => {
-  if (!timeStr) return "";
-  // If already in 24h format
-  if (!timeStr.includes("AM") && !timeStr.includes("PM")) {
-    return timeStr;
+// Normalize "HH:MM" or "HH:MM:SS" to "HH:MM" for time input
+function toTimeInput(value: string | null | undefined): string {
+  if (!value) return "";
+  const s = value.trim();
+  const part = s.split(":")[0];
+  const part2 = s.split(":")[1];
+  if (part !== undefined && part2 !== undefined) {
+    return `${part.padStart(2, "0")}:${part2.padStart(2, "0")}`;
   }
-  const [time, period] = timeStr.split(" ");
-  const [hours, minutes] = time.split(":");
-  let h = parseInt(hours);
-  if (period === "PM" && h !== 12) h += 12;
-  if (period === "AM" && h === 12) h = 0;
-  return `${h.toString().padStart(2, "0")}:${minutes}`;
-};
-
-// Helper to convert "60 min" format to "60" for select
-const convertToBreakValue = (breakStr: string): string => {
-  if (!breakStr) return "";
-  const match = breakStr.match(/(\d+)/);
-  return match ? match[1] : "";
-};
+  return s.length >= 5 ? s.slice(0, 5) : s;
+}
 
 export function EditShiftModal({ open, onOpenChange, shift, onSave }: EditShiftModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     startTime: "",
     endTime: "",
-    breakDuration: "",
-    type: "",
+    graceMinutes: 0,
+    isNightShift: false,
+    isActive: true,
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (shift) {
       setFormData({
         name: shift.name,
-        startTime: convertToTimeInput(shift.startTime),
-        endTime: convertToTimeInput(shift.endTime),
-        breakDuration: convertToBreakValue(shift.breakTime),
-        type: shift.type || "fixed",
+        startTime: toTimeInput(shift.startTime),
+        endTime: toTimeInput(shift.endTime),
+        graceMinutes: shift.graceMinutes,
+        isNightShift: shift.isNightShift,
+        isActive: shift.isActive,
       });
     }
   }, [shift]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (shift) {
-      // Convert back to display format
-      const formatTime = (time: string) => {
-        if (!time) return "";
-        const [hours, minutes] = time.split(":");
-        let h = parseInt(hours);
-        const period = h >= 12 ? "PM" : "AM";
-        if (h > 12) h -= 12;
-        if (h === 0) h = 12;
-        return `${h.toString().padStart(2, "0")}:${minutes} ${period}`;
-      };
-
-      onSave({
-        ...shift,
-        name: formData.name,
-        startTime: formatTime(formData.startTime),
-        endTime: formatTime(formData.endTime),
-        breakTime: formData.breakDuration ? `${formData.breakDuration} min` : shift.breakTime,
-        type: formData.type,
-      });
+    if (!shift) return;
+    setError(null);
+    if (!formData.name.trim() || !formData.startTime || !formData.endTime) {
+      setError("Name, start time and end time are required.");
+      return;
     }
-    onOpenChange(false);
+    setSubmitting(true);
+    try {
+      const payload: UpdateShiftPayload = {
+        name: formData.name.trim(),
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        grace_minutes: Math.max(0, formData.graceMinutes),
+        is_night_shift: formData.isNightShift,
+        is_active: formData.isActive,
+      };
+      const updated = await updateShift(shift.id, payload);
+      onSave(updated);
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update shift");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = (isOpen: boolean) => {
-    if (!isOpen && shift) {
-      setFormData({
-        name: shift.name,
-        startTime: convertToTimeInput(shift.startTime),
-        endTime: convertToTimeInput(shift.endTime),
-        breakDuration: convertToBreakValue(shift.breakTime),
-        type: shift.type || "fixed",
-      });
-    }
+    if (!isOpen) setError(null);
     onOpenChange(isOpen);
   };
 
@@ -129,6 +114,14 @@ export function EditShiftModal({ open, onOpenChange, shift, onSave }: EditShiftM
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            {error && (
+              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
+            )}
+            {shift && (
+              <p className="text-sm text-muted-foreground">
+                Office: {shift.officeName ?? `ID ${shift.officeId}`}
+              </p>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="edit-shift-name">Shift Name</Label>
               <Input
@@ -161,40 +154,32 @@ export function EditShiftModal({ open, onOpenChange, shift, onSave }: EditShiftM
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-break-duration">Break Duration</Label>
-                <Select
-                  value={formData.breakDuration}
-                  onValueChange={(value) => setFormData({ ...formData, breakDuration: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="45">45 minutes</SelectItem>
-                    <SelectItem value="60">60 minutes</SelectItem>
-                    <SelectItem value="90">90 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-grace-minutes">Grace period (minutes)</Label>
+              <Input
+                id="edit-grace-minutes"
+                type="number"
+                min={0}
+                value={formData.graceMinutes}
+                onChange={(e) => setFormData({ ...formData, graceMinutes: parseInt(e.target.value, 10) || 0 })}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit-is-night-shift"
+                  checked={formData.isNightShift}
+                  onCheckedChange={(c) => setFormData({ ...formData, isNightShift: !!c })}
+                />
+                <Label htmlFor="edit-is-night-shift" className="cursor-pointer">Night shift</Label>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-shift-type">Shift Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Fixed</SelectItem>
-                    <SelectItem value="flexible">Flexible</SelectItem>
-                    <SelectItem value="rotational">Rotational</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit-is-active"
+                  checked={formData.isActive}
+                  onCheckedChange={(c) => setFormData({ ...formData, isActive: !!c })}
+                />
+                <Label htmlFor="edit-is-active" className="cursor-pointer">Active</Label>
               </div>
             </div>
           </div>
@@ -202,7 +187,9 @@ export function EditShiftModal({ open, onOpenChange, shift, onSave }: EditShiftM
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving…" : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

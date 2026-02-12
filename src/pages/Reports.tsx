@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Download, Calendar, FileText, Search, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchEsslLogs, type EsslLogEntry } from "@/lib/api";
 
 const reportTypes = [
   { value: "daily-attendance", label: "Daily Attendance Report" },
@@ -49,6 +50,7 @@ const reportData = [
 ];
 
 type SortField = "empCode" | "name" | "date" | "checkIn" | "checkOut" | "status" | "hoursWorked";
+type SortFieldDaily = "employee_code" | "employee_name" | "device_id" | "direction" | "log_date";
 type SortDirection = "asc" | "desc" | null;
 
 const Reports = () => {
@@ -58,6 +60,31 @@ const Reports = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const [dailyLogs, setDailyLogs] = useState<EsslLogEntry[]>([]);
+  const [dailyLogsLoading, setDailyLogsLoading] = useState(false);
+  const [dailyLogsError, setDailyLogsError] = useState<string | null>(null);
+  const [sortFieldDaily, setSortFieldDaily] = useState<SortFieldDaily | null>(null);
+
+  const loadDailyLogs = useCallback(async () => {
+    setDailyLogsLoading(true);
+    setDailyLogsError(null);
+    try {
+      const logs = await fetchEsslLogs();
+      setDailyLogs(logs);
+    } catch (e) {
+      setDailyLogsError(e instanceof Error ? e.message : "Failed to load logs");
+      setDailyLogs([]);
+    } finally {
+      setDailyLogsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedReportType === "daily-attendance") {
+      loadDailyLogs();
+    }
+  }, [selectedReportType, loadDailyLogs]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -83,6 +110,46 @@ const Reports = () => {
     return <ChevronDown className="w-4 h-4 ml-1" />;
   };
 
+  const handleSortDaily = (field: SortFieldDaily) => {
+    if (sortFieldDaily === field) {
+      if (sortDirection === "asc") setSortDirection("desc");
+      else if (sortDirection === "desc") {
+        setSortFieldDaily(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortFieldDaily(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIconDaily = (field: SortFieldDaily) => {
+    if (sortFieldDaily !== field) return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    if (sortDirection === "asc") return <ChevronUp className="w-4 h-4 ml-1" />;
+    return <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+
+  const isDailyAttendance = selectedReportType === "daily-attendance";
+
+  const filteredAndSortedDailyLogs = dailyLogs
+    .filter((row) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (row.employee_code ?? "").toLowerCase().includes(q) ||
+        (row.employee_name ?? "").toLowerCase().includes(q) ||
+        (row.device_id ?? "").toLowerCase().includes(q) ||
+        (row.direction ?? "").toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (!sortFieldDaily || !sortDirection) return 0;
+      const aVal = a[sortFieldDaily] ?? "";
+      const bVal = b[sortFieldDaily] ?? "";
+      const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+
   const filteredAndSortedData = reportData
     .filter((row) => {
       if (!searchQuery) return true;
@@ -103,25 +170,59 @@ const Reports = () => {
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
 
+  const formatLogDate = (logDate: string | null) => {
+    if (!logDate) return "—";
+    try {
+      const d = new Date(logDate);
+      return isNaN(d.getTime()) ? logDate : format(d, "MMM dd, yyyy HH:mm");
+    } catch {
+      return logDate;
+    }
+  };
+
   const exportToCSV = () => {
+    if (isDailyAttendance) {
+      const headers = ["Employee Code", "Employee Name", "Device ID", "Direction", "Log Date"];
+      const csvRows = [
+        headers.join(","),
+        ...filteredAndSortedDailyLogs.map((row) =>
+          [
+            row.employee_code,
+            row.employee_name,
+            row.device_id,
+            row.direction,
+            row.log_date ? formatLogDate(row.log_date) : "",
+          ].join(",")
+        ),
+      ];
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Daily_Attendance_Report_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      return;
+    }
     const headers = ["Emp Code", "Employee Name", "Date", "Check In", "Check Out", "Status", "Hours Worked"];
     const csvRows = [
       headers.join(","),
-      ...filteredAndSortedData.map(row => 
+      ...filteredAndSortedData.map((row) =>
         [row.empCode, row.name, row.date, row.checkIn, row.checkOut, row.status, row.hoursWorked].join(",")
-      )
+      ),
     ];
-    
     const csvContent = csvRows.join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    
-    const reportLabel = reportTypes.find(r => r.value === selectedReportType)?.label || "Report";
-    const dateRange = startDate && endDate 
-      ? `_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}`
-      : `_${format(new Date(), "yyyy-MM-dd")}`;
-    
+    const reportLabel = reportTypes.find((r) => r.value === selectedReportType)?.label || "Report";
+    const dateRange =
+      startDate && endDate
+        ? `_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}`
+        : `_${format(new Date(), "yyyy-MM-dd")}`;
     link.href = url;
     link.download = `${reportLabel.replace(/\s+/g, "_")}${dateRange}.csv`;
     document.body.appendChild(link);
@@ -272,99 +373,154 @@ const Reports = () => {
         <div className="widget-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">
-              {reportTypes.find(r => r.value === selectedReportType)?.label || "Report Data"}
+              {reportTypes.find((r) => r.value === selectedReportType)?.label || "Report Data"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {startDate && endDate 
-                ? `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`
-                : "All dates"
-              }
+              {isDailyAttendance
+                ? "Latest 50 device logs from ESSL"
+                : startDate && endDate
+                  ? `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`
+                  : "All dates"}
             </p>
           </div>
-          
+
+          {isDailyAttendance && dailyLogsError && (
+            <p className="text-sm text-destructive mb-4 bg-destructive/10 px-3 py-2 rounded-md">{dailyLogsError}</p>
+          )}
+          {isDailyAttendance && (
+            <div className="mb-4">
+              <Button variant="outline" size="sm" onClick={loadDailyLogs} disabled={dailyLogsLoading}>
+                {dailyLogsLoading ? "Loading…" : "Refresh"}
+              </Button>
+            </div>
+          )}
+
           <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("empCode")}
-                  >
-                    <div className="flex items-center">
-                      Emp Code
-                      {getSortIcon("empCode")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("name")}
-                  >
-                    <div className="flex items-center">
-                      Employee Name
-                      {getSortIcon("name")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("date")}
-                  >
-                    <div className="flex items-center">
-                      Date
-                      {getSortIcon("date")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("checkIn")}
-                  >
-                    <div className="flex items-center">
-                      Check In
-                      {getSortIcon("checkIn")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("checkOut")}
-                  >
-                    <div className="flex items-center">
-                      Check Out
-                      {getSortIcon("checkOut")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("status")}
-                  >
-                    <div className="flex items-center">
-                      Status
-                      {getSortIcon("status")}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="text-primary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort("hoursWorked")}
-                  >
-                    <div className="flex items-center">
-                      Hours Worked
-                      {getSortIcon("hoursWorked")}
-                    </div>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedData.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.empCode}</TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.checkIn}</TableCell>
-                    <TableCell>{row.checkOut}</TableCell>
-                    <TableCell className={getStatusColor(row.status)}>{row.status}</TableCell>
-                    <TableCell>{row.hoursWorked}</TableCell>
+            {isDailyAttendance ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-primary hover:bg-primary">
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSortDaily("employee_code")}
+                    >
+                      <div className="flex items-center">Employee Code {getSortIconDaily("employee_code")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSortDaily("employee_name")}
+                    >
+                      <div className="flex items-center">Employee Name {getSortIconDaily("employee_name")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSortDaily("device_id")}
+                    >
+                      <div className="flex items-center">Device ID {getSortIconDaily("device_id")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSortDaily("direction")}
+                    >
+                      <div className="flex items-center">Direction {getSortIconDaily("direction")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSortDaily("log_date")}
+                    >
+                      <div className="flex items-center">Log Date {getSortIconDaily("log_date")}</div>
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {dailyLogsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Loading attendance logs…
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredAndSortedDailyLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        {dailyLogsError ? "Could not load logs." : "No logs found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAndSortedDailyLogs.map((row, idx) => (
+                      <TableRow key={`${row.employee_code}-${row.log_date ?? ""}-${idx}`}>
+                        <TableCell className="font-medium">{row.employee_code ?? "—"}</TableCell>
+                        <TableCell>{row.employee_name ?? "—"}</TableCell>
+                        <TableCell>{row.device_id ?? "—"}</TableCell>
+                        <TableCell>{row.direction ?? "—"}</TableCell>
+                        <TableCell>{formatLogDate(row.log_date)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-primary hover:bg-primary">
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("empCode")}
+                    >
+                      <div className="flex items-center">Emp Code {getSortIcon("empCode")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("name")}
+                    >
+                      <div className="flex items-center">Employee Name {getSortIcon("name")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("date")}
+                    >
+                      <div className="flex items-center">Date {getSortIcon("date")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("checkIn")}
+                    >
+                      <div className="flex items-center">Check In {getSortIcon("checkIn")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("checkOut")}
+                    >
+                      <div className="flex items-center">Check Out {getSortIcon("checkOut")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("status")}
+                    >
+                      <div className="flex items-center">Status {getSortIcon("status")}</div>
+                    </TableHead>
+                    <TableHead
+                      className="text-primary-foreground cursor-pointer select-none"
+                      onClick={() => handleSort("hoursWorked")}
+                    >
+                      <div className="flex items-center">Hours Worked {getSortIcon("hoursWorked")}</div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedData.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-medium">{row.empCode}</TableCell>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.date}</TableCell>
+                      <TableCell>{row.checkIn}</TableCell>
+                      <TableCell>{row.checkOut}</TableCell>
+                      <TableCell className={getStatusColor(row.status)}>{row.status}</TableCell>
+                      <TableCell>{row.hoursWorked}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </div>
       </main>

@@ -1,17 +1,18 @@
-import { Bell, Settings, LayoutDashboard, Users, Building2, FileText, Menu, Shield } from "lucide-react";
+import { Bell, Settings, LayoutDashboard, Users, Building2, Building, FileText, Menu, Shield, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import attenovaLogo from "@/assets/attenova-logo.png";
-
+import { useAuth } from "@/contexts/AuthContext";
 import { Clock } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Employees", icon: Users, path: "/employees" },
   { label: "Organizations", icon: Building2, path: "/organizations" },
+  { label: "Offices", icon: Building, path: "/offices" },
   { label: "Shifts", icon: Clock, path: "/shifts" },
   { label: "Reports", icon: FileText, path: "/reports" },
   { label: "Access Control", icon: Shield, path: "/access-control" },
@@ -19,8 +20,20 @@ const navItems = [
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+    setOpen(false);
+  };
+
+  const displayName = user?.name ?? "User";
+  const initials = displayName.split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "U";
+  const roleLabel = user?.role ?? "User";
+
   return (
     <header className="px-4 md:px-6 py-2.5 bg-primary">
       <div className="flex items-center justify-between">
@@ -28,7 +41,7 @@ export function Header() {
         <div className="flex items-center gap-4 md:gap-8">
           <div className="flex items-center gap-2">
             <img src={attenovaLogo} alt="Attenova" className="w-16 h-16 object-contain -my-2" />
-            <span className="text-white font-semibold text-base">Attenova</span>
+            <span className="text-white font-semibold text-[1.3rem]">Attenova</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -75,13 +88,20 @@ export function Header() {
           </Button>
           <div className="hidden xl:flex items-center gap-2.5 pl-3 border-l border-accent">
             <Avatar className="w-8 h-8">
-              <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" />
-              <AvatarFallback>AK</AvatarFallback>
+              <AvatarFallback className="bg-accent text-white text-xs">{initials}</AvatarFallback>
             </Avatar>
             <div className="text-right">
-              <p className="text-sm font-medium text-white leading-tight">Arun Kumar</p>
-              <p className="text-[11px] text-white/60">HR Manager</p>
+              <p className="text-sm font-medium text-white leading-tight">{displayName}</p>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/70 hover:text-white hover:bg-accent/50 h-8 ml-1"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Log out
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -101,12 +121,11 @@ export function Header() {
                 <div className="p-4 border-b border-accent">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" />
-                      <AvatarFallback>AK</AvatarFallback>
+                      <AvatarFallback className="bg-accent text-white">{initials}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium text-white">Arun Kumar</p>
-                      <p className="text-xs text-white/60">HR Manager</p>
+                      <p className="text-sm font-medium text-white">{displayName}</p>
+                      <p className="text-xs text-white/60">{roleLabel}</p>
                     </div>
                   </div>
                 </div>
@@ -154,6 +173,14 @@ export function Header() {
                   >
                     <Bell className="w-4 h-4" />
                     Notifications
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log out
                   </Button>
                 </div>
               </div>
