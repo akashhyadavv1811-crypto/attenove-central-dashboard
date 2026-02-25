@@ -51,6 +51,8 @@ import {
 } from "@/lib/api";
 import type { ApiOffice } from "@/lib/api";
 import { toast } from "sonner";
+import { useTableSort, useStatusFilter } from "@/hooks";
+import { useAuth } from "@/contexts/AuthContext";
 
 function apiToOffice(api: ApiOffice, orgName?: string): Office {
   return {
@@ -62,6 +64,7 @@ function apiToOffice(api: ApiOffice, orgName?: string): Office {
     fullAddress: api.full_address ?? "",
     numBiometricDevices: api.num_biometric_devices ?? 0,
     status: api.is_active !== false ? "Active" : "Inactive",
+    managerId: api.manager_id ?? undefined,
   };
 }
 
@@ -69,6 +72,9 @@ type SortField = "name" | "location" | "organizationName" | "numBiometricDevices
 type SortDirection = "asc" | "desc" | null;
 
 const Offices = () => {
+  const { user } = useAuth();
+  const canCreateOffice = user?.is_superadmin === true || user?.role === "ORG_ADMIN";
+
   const [offices, setOffices] = useState<Office[]>([]);
   const [organizations, setOrganizations] = useState<{ id: number; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,9 +85,8 @@ const Offices = () => {
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [searchQuery, setSearchQuery] = useState("");
   const [organizationFilter, setOrganizationFilter] = useState<number | "all">("all");
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const { sortField, sortDirection, handleSort, getSortDirection } = useTableSort<SortField>();
+  const { statusFilters, setStatusFilters, toggleStatusFilter } = useStatusFilter([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadOrganizations = useCallback(async () => {
@@ -120,22 +125,10 @@ const Offices = () => {
 
   const allStatuses = Array.from(new Set(offices.map((o) => o.status)));
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      if (sortDirection === "asc") setSortDirection("desc");
-      else if (sortDirection === "desc") {
-        setSortField(null);
-        setSortDirection(null);
-      }
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
   const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
-    if (sortDirection === "asc") return <ChevronUp className="w-4 h-4 ml-1" />;
+    const dir = getSortDirection(field);
+    if (dir === null) return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    if (dir === "asc") return <ChevronUp className="w-4 h-4 ml-1" />;
     return <ChevronDown className="w-4 h-4 ml-1" />;
   };
 
@@ -172,12 +165,6 @@ const Offices = () => {
     }
     setIsDeleteModalOpen(false);
     setSelectedOffice(null);
-  };
-
-  const toggleStatusFilter = (status: string) => {
-    setStatusFilters((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
-    );
   };
 
   const clearFilters = () => setStatusFilters([]);
@@ -251,17 +238,19 @@ const Offices = () => {
               Manage offices and biometric devices by organization
             </p>
           </div>
-          <Button
-            className="bg-primary text-primary-foreground"
-            onClick={() => {
-              setModalMode("add");
-              setSelectedOffice(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Office
-          </Button>
+          {canCreateOffice && (
+            <Button
+              className="bg-primary text-primary-foreground"
+              onClick={() => {
+                setModalMode("add");
+                setSelectedOffice(null);
+                setIsModalOpen(true);
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Office
+            </Button>
+          )}
         </div>
 
         <div className="widget-card mb-6">

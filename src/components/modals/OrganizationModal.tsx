@@ -10,10 +10,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, ArrowRight, Building2, User } from "lucide-react";
 import { createOrganization, updateOrganization } from "@/lib/api";
+import { GOVERNMENT_ID_TYPES } from "@/constants/employee";
 import type { CreateOrganizationResponse } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -70,7 +78,9 @@ const emptyAddForm = {
   ownerEmail: "",
   ownerPassword: "",
   ownerPhone: "",
-  ownerDesignation: "",
+  ownerGender: "",
+  ownerGovtIdType: "",
+  ownerGovtIdValue: "",
   orgName: "",
   orgAddress: "",
   orgCity: "",
@@ -116,7 +126,9 @@ export function OrganizationModal({
         ownerEmail: organization.owner?.email ?? "",
         ownerPassword: "",
         ownerPhone: organization.owner?.phone_number ?? "",
-        ownerDesignation: organization.owner?.designation ?? "",
+        ownerGender: "",
+        ownerGovtIdType: "",
+        ownerGovtIdValue: "",
         orgName: organization.name,
         orgAddress: organization.address ?? "",
         orgCity: organization.city ?? "",
@@ -147,7 +159,9 @@ export function OrganizationModal({
             ownerEmail: organization.owner?.email ?? "",
             ownerPassword: "",
             ownerPhone: organization.owner?.phone_number ?? "",
-            ownerDesignation: organization.owner?.designation ?? "",
+            ownerGender: "",
+            ownerGovtIdType: "",
+            ownerGovtIdValue: "",
             orgName: organization.name,
             orgAddress: organization.address ?? "",
             orgCity: organization.city ?? "",
@@ -196,7 +210,10 @@ export function OrganizationModal({
           password: addFormData.ownerPassword,
           name: addFormData.ownerName.trim() || undefined,
           phone_number: addFormData.ownerPhone.trim() || undefined,
-          designation: addFormData.ownerDesignation.trim() || undefined,
+          designation: "ORG_ADMIN",
+          gender: addFormData.ownerGender.trim() || undefined,
+          government_id_type: addFormData.ownerGovtIdType.trim() || undefined,
+          government_id_value: addFormData.ownerGovtIdValue.trim() || undefined,
         },
         organization: {
           name: addFormData.orgName.trim(),
@@ -277,37 +294,37 @@ export function OrganizationModal({
     const progressValue = (step / 2) * 100;
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[580px] p-0 gap-0 overflow-hidden [&>button]:right-5 [&>button]:top-5 [&>button]:z-10 [&>button]:text-primary-foreground [&>button]:opacity-90 [&>button]:hover:opacity-100 [&>button]:hover:bg-white/10">
-          <div className="border-b border-white/20 bg-primary text-primary-foreground px-6 pt-14 pb-5">
-            <div className="flex items-center gap-3 mb-4">
+        <DialogContent className="sm:max-w-[680px] w-[95vw] p-0 gap-0 overflow-hidden">
+          <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
+            <div className="flex items-center gap-2 mb-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className={`p-2.5 rounded-xl transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${step === 1 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
+                className={`p-2 rounded-lg transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${step === 1 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
                 aria-label="Go to Owner Profile"
               >
-                <User className="h-5 w-5" />
+                <User className="h-4 w-4" />
               </button>
               <div className="h-px flex-1 bg-white/30" />
               <button
                 type="button"
                 onClick={() => goToStep(2)}
-                className={`p-2.5 rounded-xl transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${step === 2 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
+                className={`p-2 rounded-lg transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${step === 2 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
                 aria-label="Go to Organization Details"
               >
-                <Building2 className="h-5 w-5" />
+                <Building2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="h-2.5 w-full rounded-full bg-white/20 overflow-hidden mb-1">
+            <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden mb-1">
               <Progress
                 value={progressValue}
-                className="h-2.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
+                className="h-1.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
               />
             </div>
-            <h2 className="text-lg font-semibold text-white mt-4">
+            <h2 className="text-lg font-semibold text-white mt-2">
               {step === 1 ? "Owner Profile" : "Organization Details"}
             </h2>
-            <p className="text-sm text-white/80 mt-0.5">
+            <p className="text-xs text-white/70 mt-0.5">
               {step === 1
                 ? "Enter the details of the organization owner or primary contact."
                 : "Enter your organization name and contact details."}
@@ -350,24 +367,63 @@ export function OrganizationModal({
                       minLength={8}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="owner-phone">Phone Number</Label>
-                    <Input
-                      id="owner-phone"
-                      type="tel"
-                      placeholder="e.g. +91 98765 43210"
-                      value={addFormData.ownerPhone}
-                      onChange={(e) => setAddFormData({ ...addFormData, ownerPhone: e.target.value })}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="owner-phone">Phone Number</Label>
+                      <Input
+                        id="owner-phone"
+                        type="tel"
+                        placeholder="e.g. +91 98765 43210"
+                        value={addFormData.ownerPhone}
+                        onChange={(e) => setAddFormData({ ...addFormData, ownerPhone: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="owner-gender">Gender</Label>
+                      <Select
+                        value={addFormData.ownerGender || "none"}
+                        onValueChange={(v) => setAddFormData({ ...addFormData, ownerGender: v === "none" ? "" : v })}
+                      >
+                        <SelectTrigger id="owner-gender">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          <SelectItem value="M">Male</SelectItem>
+                          <SelectItem value="F">Female</SelectItem>
+                          <SelectItem value="O">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="owner-designation">Designation</Label>
-                    <Input
-                      id="owner-designation"
-                      placeholder="e.g. CEO, Director, Manager"
-                      value={addFormData.ownerDesignation}
-                      onChange={(e) => setAddFormData({ ...addFormData, ownerDesignation: e.target.value })}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="owner-govt-id-type">Government ID Type</Label>
+                      <Select
+                        value={addFormData.ownerGovtIdType || "__none__"}
+                        onValueChange={(v) => setAddFormData({ ...addFormData, ownerGovtIdType: v === "__none__" ? "" : v })}
+                      >
+                        <SelectTrigger id="owner-govt-id-type">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GOVERNMENT_ID_TYPES.map((opt) => (
+                            <SelectItem key={opt.value || "__none__"} value={opt.value || "__none__"}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="owner-govt-id-value">Government ID Value</Label>
+                      <Input
+                        id="owner-govt-id-value"
+                        placeholder="ID number"
+                        value={addFormData.ownerGovtIdValue}
+                        onChange={(e) => setAddFormData({ ...addFormData, ownerGovtIdValue: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </>
               )}
@@ -491,37 +547,37 @@ export function OrganizationModal({
   const editProgressValue = (editStep / 2) * 100;
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[580px] p-0 gap-0 overflow-hidden [&>button]:right-5 [&>button]:top-5 [&>button]:z-10 [&>button]:text-primary-foreground [&>button]:opacity-90 [&>button]:hover:opacity-100 [&>button]:hover:bg-white/10">
-        <div className="border-b border-white/20 bg-primary text-primary-foreground px-6 pt-14 pb-5">
-          <div className="flex items-center gap-3 mb-4">
+      <DialogContent className="sm:max-w-[680px] w-[95vw] p-0 gap-0 overflow-hidden">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
+          <div className="flex items-center gap-2 mb-2">
             <button
               type="button"
               onClick={() => setEditStep(1)}
-              className={`p-2.5 rounded-xl transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${editStep === 1 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
+              className={`p-2 rounded-lg transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${editStep === 1 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
               aria-label="Go to Owner Profile"
             >
-              <User className="h-5 w-5" />
+              <User className="h-4 w-4" />
             </button>
             <div className="h-px flex-1 bg-white/30" />
             <button
               type="button"
               onClick={() => setEditStep(2)}
-              className={`p-2.5 rounded-xl transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${editStep === 2 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
+              className={`p-2 rounded-lg transition-colors cursor-pointer hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 ${editStep === 2 ? "bg-white/20 text-white" : "bg-white/10 text-white/70"}`}
               aria-label="Go to Organization Details"
             >
-              <Building2 className="h-5 w-5" />
+              <Building2 className="h-4 w-4" />
             </button>
           </div>
-          <div className="h-2.5 w-full rounded-full bg-white/20 overflow-hidden mb-1">
+          <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden mb-1">
             <Progress
               value={editProgressValue}
-              className="h-2.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
+              className="h-1.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
             />
           </div>
-          <h2 className="text-lg font-semibold text-white mt-4">
+          <h2 className="text-lg font-semibold text-white mt-2">
             {editStep === 1 ? "Owner Profile" : "Organization Details"}
           </h2>
-          <p className="text-sm text-white/80 mt-0.5">
+          <p className="text-xs text-white/70 mt-0.5">
             {editStep === 1
               ? "Enter the details of the organization owner or primary contact."
               : "Enter your organization name and contact details."}
@@ -566,24 +622,63 @@ export function OrganizationModal({
                     onChange={(e) => setEditFormData({ ...editFormData, ownerPassword: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-owner-phone">Phone Number</Label>
-                  <Input
-                    id="edit-owner-phone"
-                    type="tel"
-                    placeholder="e.g. +91 98765 43210"
-                    value={editFormData.ownerPhone}
-                    onChange={(e) => setEditFormData({ ...editFormData, ownerPhone: e.target.value })}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-owner-phone">Phone Number</Label>
+                    <Input
+                      id="edit-owner-phone"
+                      type="tel"
+                      placeholder="e.g. +91 98765 43210"
+                      value={editFormData.ownerPhone}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerPhone: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-owner-gender">Gender</Label>
+                    <Select
+                      value={editFormData.ownerGender || "none"}
+                      onValueChange={(v) => setEditFormData({ ...editFormData, ownerGender: v === "none" ? "" : v })}
+                    >
+                      <SelectTrigger id="edit-owner-gender">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        <SelectItem value="M">Male</SelectItem>
+                        <SelectItem value="F">Female</SelectItem>
+                        <SelectItem value="O">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-owner-designation">Designation</Label>
-                  <Input
-                    id="edit-owner-designation"
-                    placeholder="e.g. CEO, Director, Manager"
-                    value={editFormData.ownerDesignation}
-                    onChange={(e) => setEditFormData({ ...editFormData, ownerDesignation: e.target.value })}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-owner-govt-id-type">Government ID Type</Label>
+                    <Select
+                      value={editFormData.ownerGovtIdType || "__none__"}
+                      onValueChange={(v) => setEditFormData({ ...editFormData, ownerGovtIdType: v === "__none__" ? "" : v })}
+                    >
+                      <SelectTrigger id="edit-owner-govt-id-type">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GOVERNMENT_ID_TYPES.map((opt) => (
+                          <SelectItem key={opt.value || "__none__"} value={opt.value || "__none__"}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-owner-govt-id-value">Government ID Value</Label>
+                    <Input
+                      id="edit-owner-govt-id-value"
+                      placeholder="ID number"
+                      value={editFormData.ownerGovtIdValue}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerGovtIdValue: e.target.value })}
+                    />
+                  </div>
                 </div>
               </>
             )}

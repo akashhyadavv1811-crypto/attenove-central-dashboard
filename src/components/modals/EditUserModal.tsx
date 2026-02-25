@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -131,15 +129,15 @@ export const EditUserModal = ({ isOpen, onClose, onSave, user, roles, modules }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] max-h-[90vh] flex flex-col min-h-0 overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription>Modify user details and permissions.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] max-h-[90vh] flex flex-col min-h-0 overflow-hidden p-0 gap-0">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
+          <DialogTitle className="text-lg font-semibold text-white">Edit User</DialogTitle>
+          <p className="text-xs text-white/70 mt-0.5">Modify user details and permissions.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <ScrollArea type="always" className="flex-1 min-h-0 h-full pr-4">
-            <div className="space-y-4">
+          <ScrollArea type="always" className="flex-1 min-h-0 h-full px-6 pr-4">
+            <div className="space-y-4 py-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name *</Label>
@@ -280,7 +278,7 @@ export const EditUserModal = ({ isOpen, onClose, onSave, user, roles, modules }:
             </div>
           </ScrollArea>
 
-          <DialogFooter className="mt-6 flex justify-between">
+          <DialogFooter className="flex justify-between border-t border-border px-6 py-4 bg-muted/20">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>

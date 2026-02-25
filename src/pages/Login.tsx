@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import attenovaLogo from "@/assets/attenova-logo.png";
+import AttenovaLogo from "@/assets/Attenova-logo.png";
 import loginBg from "@/assets/login-bg.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -51,18 +51,18 @@ const Login = () => {
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
         
-        {/* Top Navigation */}
+        {/* Top Navigation - Brand */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 py-6 z-10">
-          <div className="flex items-center gap-3">
-            <img src={attenovaLogo} alt="Attenova" className="w-14 h-14 object-contain" />
-            <span className="font-brand text-white font-semibold text-2xl tracking-tight">Attenova</span>
+          <div className="flex items-center">
+            <img 
+              src={AttenovaLogo} 
+              alt="Attenova" 
+              className="w-20 h-20 xl:w-24 xl:h-24 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" 
+            />
+            <span className="font-brand text-white font-bold text-3xl xl:text-3xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+              Attenova
+            </span>
           </div>
-          <Link 
-            to="/" 
-            className="text-white/80 hover:text-white text-sm flex items-center gap-1 transition-colors"
-          >
-            ← Back to Website
-          </Link>
         </div>
         
         {/* Content - positioned at bottom */}
@@ -86,12 +86,12 @@ const Login = () => {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
-            <img src={attenovaLogo} alt="Attenova" className="w-10 h-10 object-contain" />
+            <img src={AttenovaLogo} alt="Attenova" className="w-10 h-10 object-contain" />
             <span className="text-foreground font-semibold text-lg">Attenova</span>
           </div>
 
           {/* Form Header */}
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back!</h2>
             <p className="text-muted-foreground text-sm">
               Log in to start managing attendance with ease.

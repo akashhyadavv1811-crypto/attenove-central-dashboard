@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import { fetchOrganizations, deleteOrganization } from "@/lib/api";
 import type { ApiOrganization } from "@/lib/api";
 import { toast } from "sonner";
+import { useTableSort, useStatusFilter } from "@/hooks";
 
 function apiToOrg(api: ApiOrganization): Organization {
   return {
@@ -80,9 +81,8 @@ const Organizations = () => {
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const { sortField, sortDirection, handleSort, getSortDirection } = useTableSort<SortField>();
+  const { statusFilters, setStatusFilters, toggleStatusFilter } = useStatusFilter([]);
   const [locationFilters, setLocationFilters] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -106,27 +106,10 @@ const Organizations = () => {
   const allStatuses = Array.from(new Set(organizations.map(o => o.status)));
   const allLocations = Array.from(new Set(organizations.map(o => o.location)));
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else if (sortDirection === "desc") {
-        setSortField(null);
-        setSortDirection(null);
-      }
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
   const getSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
-    }
-    if (sortDirection === "asc") {
-      return <ChevronUp className="w-4 h-4 ml-1" />;
-    }
+    const dir = getSortDirection(field);
+    if (dir === null) return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+    if (dir === "asc") return <ChevronUp className="w-4 h-4 ml-1" />;
     return <ChevronDown className="w-4 h-4 ml-1" />;
   };
 
@@ -156,14 +139,6 @@ const Organizations = () => {
     }
     setIsDeleteModalOpen(false);
     setSelectedOrganization(null);
-  };
-
-  const toggleStatusFilter = (status: string) => {
-    setStatusFilters(prev => 
-      prev.includes(status) 
-        ? prev.filter(s => s !== status)
-        : [...prev, status]
-    );
   };
 
   const toggleLocationFilter = (location: string) => {

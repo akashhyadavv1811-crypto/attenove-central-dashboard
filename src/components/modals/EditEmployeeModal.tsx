@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,15 +20,9 @@ import { Camera, X } from "lucide-react";
 import { updateEmployee, getProfilePicUrl, fetchDesignations } from "@/lib/api";
 import type { DesignationOption } from "@/lib/api";
 import { toast } from "sonner";
-
-const DESIGNATION_FALLBACK: DesignationOption[] = [
-  { value: "ORG_ADMIN", label: "Org Admin" },
-  { value: "OFFICE_ADMIN", label: "Office Admin" },
-  { value: "MANAGER", label: "Manager" },
-  { value: "SUPERVISOR", label: "Supervisor" },
-  { value: "EMPLOYEE", label: "Staff" },
-  { value: "SUPPORT_STAFF", label: "Support Staff" },
-];
+import { DESIGNATION_FALLBACK, GOVERNMENT_ID_TYPES } from "@/constants/employee";
+import { useEmployeeDuplicateCheck } from "@/hooks";
+import { getDobValidationError } from "@/lib/utils";
 
 export interface Employee {
   id: number;
@@ -43,6 +35,8 @@ export interface Employee {
   dateOfBirth: string;
   email: string;
   phoneNumber: string;
+  governmentIdType?: string;
+  governmentIdValue?: string;
   profilePic: string | null;
   status: string;
   organizationName?: string;
@@ -74,12 +68,23 @@ export function EditEmployeeModal({
     empCode: "",
     officeId: "" as string | number,
     status: "Active",
+    governmentIdType: "",
+    governmentIdValue: "",
   });
   const [designations, setDesignations] = useState<DesignationOption[]>([]);
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dobError, setDobError] = useState<string | undefined>(undefined);
+
+  const { duplicateErrors, setDuplicateErrors, checkDuplicates } = useEmployeeDuplicateCheck({
+    getOfficeId: () => (formData.officeId !== "" ? formData.officeId : (employee?.officeId ?? "")),
+    getPhone: () => formData.phoneNumber,
+    getEmail: () => formData.email,
+    getGovernmentIdValue: () => formData.governmentIdValue,
+    getExcludeEmployeeId: () => employee?.id,
+  });
 
   const designationOptions = designations.length > 0 ? designations : DESIGNATION_FALLBACK;
   const officesForOrg = employee
@@ -98,13 +103,20 @@ export function EditEmployeeModal({
         empCode: employee.empCode,
         officeId: employee.officeId,
         status: employee.status,
+        governmentIdType: employee.governmentIdType ?? "",
+        governmentIdValue: employee.governmentIdValue ?? "",
       });
       setProfilePicFile(null);
       setPhotoPreview(null);
+      setDuplicateErrors({});
       if (fileInputRef.current) fileInputRef.current.value = "";
       fetchDesignations().then(setDesignations).catch(() => {});
     }
   }, [open, employee]);
+
+  useEffect(() => {
+    setDuplicateErrors({});
+  }, [formData.officeId]);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen && employee) {
@@ -118,9 +130,12 @@ export function EditEmployeeModal({
         empCode: employee.empCode,
         officeId: employee.officeId,
         status: employee.status,
+        governmentIdType: employee.governmentIdType ?? "",
+        governmentIdValue: employee.governmentIdValue ?? "",
       });
       setProfilePicFile(null);
       setPhotoPreview(null);
+      setDuplicateErrors({});
     }
     onOpenChange(isOpen);
   };
@@ -144,6 +159,16 @@ export function EditEmployeeModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!employee) return;
+    const dobErr = formData.dateOfBirth.trim() ? getDobValidationError(formData.dateOfBirth) : undefined;
+    setDobError(dobErr);
+    if (dobErr) {
+      toast.error(dobErr);
+      return;
+    }
+    if (duplicateErrors.phone || duplicateErrors.email || duplicateErrors.governmentIdValue) {
+      toast.error("Please fix duplicate phone, email, or government ID before saving.");
+      return;
+    }
     if (!formData.name.trim()) {
       toast.error("Name is required.");
       return;
@@ -162,6 +187,8 @@ export function EditEmployeeModal({
           emp_code: formData.empCode.trim() || undefined,
           office_id: formData.officeId !== "" ? Number(formData.officeId) : undefined,
           is_active: formData.status === "Active",
+          government_id_type: formData.governmentIdType.trim() || undefined,
+          government_id_value: formData.governmentIdValue.trim() || undefined,
         },
         profilePicFile || undefined
       );
@@ -176,6 +203,8 @@ export function EditEmployeeModal({
         empCode: formData.empCode.trim(),
         officeId: formData.officeId !== "" ? Number(formData.officeId) : employee.officeId,
         status: formData.status,
+        governmentIdType: formData.governmentIdType.trim() || undefined,
+        governmentIdValue: formData.governmentIdValue.trim() || undefined,
         profilePic: updatedApi.profile_pic ?? employee.profilePic,
       };
       toast.success("Employee updated.");
@@ -192,12 +221,14 @@ export function EditEmployeeModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Employee</DialogTitle>
-          <DialogDescription>Update the employee details below.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] min-h-[50vh] flex flex-col p-0 gap-0">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
+          <DialogTitle className="text-lg font-semibold text-white">Edit Employee</DialogTitle>
+          <p className="text-xs text-white/70 mt-0.5">Update the employee details below.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="overflow-y-auto min-h-0 flex-1 max-h-[calc(90vh-11rem)] scrollbar-modal px-6 pr-5">
+          <div className="space-y-4">
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <Avatar className="w-20 h-20 border-2 border-dashed border-muted-foreground/50">
@@ -301,8 +332,14 @@ export function EditEmployeeModal({
                 id="edit-emp-dob"
                 type="date"
                 value={formData.dateOfBirth}
-                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, dateOfBirth: e.target.value });
+                  if (dobError) setDobError(getDobValidationError(e.target.value));
+                }}
+                onBlur={() => setDobError(formData.dateOfBirth.trim() ? getDobValidationError(formData.dateOfBirth) ?? undefined : undefined)}
+                className={dobError ? "border-destructive" : ""}
               />
+              {dobError && <p className="text-xs text-destructive">{dobError}</p>}
             </div>
           </div>
           <div className="grid gap-2">
@@ -311,9 +348,17 @@ export function EditEmployeeModal({
               id="edit-emp-email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                if (duplicateErrors.email) setDuplicateErrors((p) => ({ ...p, email: undefined }));
+              }}
+              onBlur={() => formData.email.trim() && checkDuplicates("email")}
               placeholder="email@company.com"
+              className={duplicateErrors.email ? "border-destructive" : ""}
             />
+            {duplicateErrors.email && (
+              <p className="text-xs text-destructive">{duplicateErrors.email}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="edit-emp-phone">Phone Number</Label>
@@ -321,9 +366,54 @@ export function EditEmployeeModal({
               id="edit-emp-phone"
               type="tel"
               value={formData.phoneNumber}
-              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, phoneNumber: e.target.value });
+                if (duplicateErrors.phone) setDuplicateErrors((p) => ({ ...p, phone: undefined }));
+              }}
+              onBlur={() => formData.phoneNumber.trim() && checkDuplicates("phone")}
               placeholder="+91 98765 43210"
+              className={duplicateErrors.phone ? "border-destructive" : ""}
             />
+            {duplicateErrors.phone && (
+              <p className="text-xs text-destructive">{duplicateErrors.phone}</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-emp-gov-id-type">Government ID Type</Label>
+              <Select
+                value={formData.governmentIdType || "none"}
+                onValueChange={(v) => setFormData({ ...formData, governmentIdType: v === "none" ? "" : v })}
+              >
+                <SelectTrigger id="edit-emp-gov-id-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GOVERNMENT_ID_TYPES.map((opt) => (
+                    <SelectItem key={opt.value || "none"} value={opt.value || "none"}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-emp-gov-id-value">Government ID Value</Label>
+              <Input
+                id="edit-emp-gov-id-value"
+                placeholder="ID number"
+                value={formData.governmentIdValue}
+                onChange={(e) => {
+                  setFormData({ ...formData, governmentIdValue: e.target.value });
+                  if (duplicateErrors.governmentIdValue) setDuplicateErrors((p) => ({ ...p, governmentIdValue: undefined }));
+                }}
+                onBlur={() => formData.governmentIdValue.trim() && checkDuplicates("governmentIdValue")}
+                className={duplicateErrors.governmentIdValue ? "border-destructive" : ""}
+              />
+              {duplicateErrors.governmentIdValue && (
+                <p className="text-xs text-destructive">{duplicateErrors.governmentIdValue}</p>
+              )}
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="edit-emp-office">Office</Label>
@@ -359,7 +449,9 @@ export function EditEmployeeModal({
               </SelectContent>
             </Select>
           </div>
-          <DialogFooter className="flex flex-row justify-between sm:justify-between">
+          </div>
+          </div>
+          <DialogFooter className="flex flex-row justify-between sm:justify-between px-6 py-4 border-t border-border shrink-0">
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>

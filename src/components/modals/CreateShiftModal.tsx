@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -87,15 +85,13 @@ export function CreateShiftModal({ open, onOpenChange, offices, onSuccess }: Cre
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Create New Shift</DialogTitle>
-          <DialogDescription>
-            Configure shift timings and grace period for an office.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[600px] w-[95vw] p-0 gap-0">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
+          <DialogTitle className="text-lg font-semibold text-white">Create New Shift</DialogTitle>
+          <p className="text-xs text-white/70 mt-0.5">Configure shift timings and grace period for an office.</p>
+        </div>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 px-6 py-5">
             {error && (
               <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
             )}
@@ -177,7 +173,7 @@ export function CreateShiftModal({ open, onOpenChange, offices, onSuccess }: Cre
               </div>
             </div>
           </div>
-          <DialogFooter className="flex flex-row justify-between sm:justify-between">
+          <DialogFooter className="flex flex-row justify-between sm:justify-between border-t border-border px-6 py-4 bg-muted/20">
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>

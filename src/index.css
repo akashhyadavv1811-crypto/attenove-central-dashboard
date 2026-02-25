@@ -208,4 +208,24 @@
   .text-warning {
     color: hsl(var(--warning));
   }
+
+  /* Blue scrollbar for modals and scroll areas */
+  .scrollbar-modal {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary)) transparent;
+  }
+  .scrollbar-modal::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scrollbar-modal::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.5);
+    border-radius: 4px;
+  }
+  .scrollbar-modal::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 4px;
+  }
+  .scrollbar-modal::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent));
+  }
 }

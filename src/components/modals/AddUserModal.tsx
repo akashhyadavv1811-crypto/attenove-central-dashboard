@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -134,15 +132,15 @@ export const AddUserModal = ({ isOpen, onClose, onAdd, roles, modules }: AddUser
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
-          <DialogDescription>Create a new user and assign a role with optional custom permissions.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
+          <DialogTitle className="text-lg font-semibold text-white">Add New User</DialogTitle>
+          <p className="text-xs text-white/70 mt-0.5">Create a new user and assign a role with optional custom permissions.</p>
+        </div>
 
         <form onSubmit={handleSubmit}>
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="max-h-[60vh] px-6 pr-4">
+            <div className="space-y-4 py-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name *</Label>
@@ -283,7 +281,7 @@ export const AddUserModal = ({ isOpen, onClose, onAdd, roles, modules }: AddUser
             </div>
           </ScrollArea>
 
-          <DialogFooter className="mt-6 flex justify-between">
+          <DialogFooter className="flex justify-between border-t border-border px-6 py-4 bg-muted/20">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>

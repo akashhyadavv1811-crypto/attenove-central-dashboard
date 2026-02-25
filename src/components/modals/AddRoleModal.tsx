@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -97,14 +95,14 @@ export const AddRoleModal = ({ isOpen, onClose, onAdd, modules }: AddRoleModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Add New Role</DialogTitle>
-          <DialogDescription>Create a new role with specific permissions for each module.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+        <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
+          <DialogTitle className="text-lg font-semibold text-white">Add New Role</DialogTitle>
+          <p className="text-xs text-white/70 mt-0.5">Create a new role with specific permissions for each module.</p>
+        </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 px-6 py-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Role Name *</Label>
@@ -197,7 +195,7 @@ export const AddRoleModal = ({ isOpen, onClose, onAdd, modules }: AddRoleModalPr
             </div>
           </div>
 
-          <DialogFooter className="mt-6 flex justify-between">
+          <DialogFooter className="flex justify-between border-t border-border px-6 py-4 bg-muted/20">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
