@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,7 +89,9 @@ export function CreateShiftModal({ open, onOpenChange, offices, onSuccess }: Cre
       <DialogContent className="sm:max-w-[600px] w-[95vw] p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Create New Shift</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Configure shift timings and grace period for an office.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Configure shift timings and grace period for an office.
+          </DialogDescription>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 px-6 py-5">

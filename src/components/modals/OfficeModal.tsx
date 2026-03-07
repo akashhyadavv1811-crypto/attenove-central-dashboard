@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -344,11 +345,11 @@ export function OfficeModal({
             <DialogTitle className="text-lg font-semibold text-white mt-2">
               {step === 1 ? "Office Admin Details" : "Office Details"}
             </DialogTitle>
-            <p className="text-xs text-white/70 mt-0.5">
+            <DialogDescription className="text-xs text-white/70 mt-0.5">
               {step === 1
                 ? "Enter the details of the office admin or primary contact."
                 : "Enter office name and address details."}
-            </p>
+            </DialogDescription>
           </div>
 
           <form onSubmit={handleAddSubmit}>
@@ -604,11 +605,11 @@ export function OfficeModal({
           <DialogTitle className="text-lg font-semibold text-white mt-2">
             {editStep === 1 ? "Office Admin Details" : "Office Details"}
           </DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
             {editStep === 1
               ? "Office admin is linked to this office."
               : "Update office name and address details."}
-          </p>
+          </DialogDescription>
         </div>
 
         <div

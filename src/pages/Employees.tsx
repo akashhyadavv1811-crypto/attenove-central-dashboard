@@ -443,8 +443,8 @@ const Employees = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className={`px-6 py-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
-        <div className="flex items-center justify-between mb-6">
+      <main className={`px-4 py-4 md:px-6 md:py-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Employees</h1>
             <p className="text-sm text-muted-foreground">Manage your organization's employees</p>
@@ -599,7 +599,7 @@ const Employees = () => {
           <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
+                <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                   <TableHead className="text-primary-foreground w-12 px-4">
                     <Checkbox
                       checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}

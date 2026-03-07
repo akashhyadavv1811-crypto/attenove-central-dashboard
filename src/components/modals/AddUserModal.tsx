@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,7 +136,9 @@ export const AddUserModal = ({ isOpen, onClose, onAdd, roles, modules }: AddUser
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Add New User</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Create a new user and assign a role with optional custom permissions.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Create a new user and assign a role with optional custom permissions.
+          </DialogDescription>
         </div>
 
         <form onSubmit={handleSubmit}>

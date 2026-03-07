@@ -224,7 +224,9 @@ export function EditEmployeeModal({
       <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] min-h-[50vh] flex flex-col p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Edit Employee</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Update the employee details below.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Update the employee details below.
+          </DialogDescription>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
           <div className="overflow-y-auto min-h-0 flex-1 max-h-[calc(90vh-11rem)] scrollbar-modal px-6 pr-5">

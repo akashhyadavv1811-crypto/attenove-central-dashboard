@@ -224,9 +224,9 @@ const Organizations = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="px-6 py-6">
+      <main className="px-4 py-4 md:px-6 md:py-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Organizations</h1>
             <p className="text-sm text-muted-foreground">Manage offices and biometric devices</p>
@@ -246,9 +246,9 @@ const Organizations = () => {
 
         {/* Search and View Toggle */}
         <div className="widget-card mb-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative max-w-sm flex-1">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 flex-1 md:flex-row md:items-center md:justify-between">
+              <div className="relative w-full sm:w-[260px] lg:w-[320px] min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="Search organizations..." 
@@ -257,65 +257,84 @@ const Organizations = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                    {hasActiveFilters && (
-                      <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
-                        {statusFilters.length + locationFilters.length}
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64" align="start">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">Filters</h4>
+              <div className="flex items-center gap-3 mt-2 md:mt-0">
+                <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={hasActiveFilters ? "border-primary text-primary" : ""}
+                    >
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filter
                       {hasActiveFilters && (
-                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
-                          Clear all
-                        </Button>
+                        <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
+                          {statusFilters.length + locationFilters.length}
+                        </span>
                       )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
-                      {allStatuses.map(status => (
-                        <div key={status} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`org-status-${status}`}
-                            checked={statusFilters.includes(status)}
-                            onCheckedChange={() => toggleStatusFilter(status)}
-                          />
-                          <label htmlFor={`org-status-${status}`} className="text-sm cursor-pointer">{status}</label>
-                        </div>
-                      ))}
-                    </div>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64" align="start">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm">Filters</h4>
+                        {hasActiveFilters && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearFilters}
+                            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Clear all
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+                          Status
+                        </Label>
+                        {allStatuses.map(status => (
+                          <div key={status} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`org-status-${status}`}
+                              checked={statusFilters.includes(status)}
+                              onCheckedChange={() => toggleStatusFilter(status)}
+                            />
+                            <label htmlFor={`org-status-${status}`} className="text-sm cursor-pointer">
+                              {status}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground uppercase tracking-wide">Location</Label>
-                      {allLocations.map(location => (
-                        <div key={location} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`org-loc-${location}`}
-                            checked={locationFilters.includes(location)}
-                            onCheckedChange={() => toggleLocationFilter(location)}
-                          />
-                          <label htmlFor={`org-loc-${location}`} className="text-sm cursor-pointer">{location}</label>
-                        </div>
-                      ))}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+                          Location
+                        </Label>
+                        {allLocations.map(location => (
+                          <div key={location} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`org-loc-${location}`}
+                              checked={locationFilters.includes(location)}
+                              onCheckedChange={() => toggleLocationFilter(location)}
+                            />
+                            <label htmlFor={`org-loc-${location}`} className="text-sm cursor-pointer">
+                              {location}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <Button variant="outline" size="sm" onClick={exportToCSV}>
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+                  </PopoverContent>
+                </Popover>
+                <Button variant="outline" size="sm" onClick={exportToCSV}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+            <div className="flex items-center gap-1 bg-muted p-1 rounded-lg mt-3 lg:mt-0">
               <Button
                 variant={viewMode === "card" ? "default" : "ghost"}
                 size="sm"
@@ -421,7 +440,7 @@ const Organizations = () => {
             <div className="rounded-md border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                     <TableHead 
                       className="text-primary-foreground cursor-pointer select-none"
                       onClick={() => handleSort("name")}

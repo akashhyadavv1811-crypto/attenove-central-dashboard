@@ -243,72 +243,79 @@ const Shifts = () => {
         </div>
 
         <div className="widget-card mb-6">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="relative max-w-sm flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search shifts..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            {/* Left: search + office select */}
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 md:flex-none">
+              <div className="relative w-full sm:w-[260px] lg:w-[320px] min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search shifts..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select
+                value={officeFilterId === "" ? "all" : String(officeFilterId)}
+                onValueChange={(v) => setOfficeFilterId(v === "all" ? "" : (Number(v) as number))}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="All offices" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All offices</SelectItem>
+                  {offices.map((o) => (
+                    <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={officeFilterId === "" ? "all" : String(officeFilterId)}
-              onValueChange={(v) => setOfficeFilterId(v === "all" ? "" : (Number(v) as number))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Office" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All offices</SelectItem>
-                {offices.map((o) => (
-                  <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filter
-                  {hasActiveFilters && (
-                    <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
-                      {statusFilters.length}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48" align="start">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-sm">Filters</h4>
+
+            {/* Right: Filter + Export */}
+            <div className="flex items-center gap-3">
+              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={hasActiveFilters ? "border-primary text-primary" : ""}>
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
                     {hasActiveFilters && (
-                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
-                        Clear all
-                      </Button>
+                      <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5">
+                        {statusFilters.length}
+                      </span>
                     )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48" align="start">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm">Filters</h4>
+                      {hasActiveFilters && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">
+                          Clear all
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
+                      {allStatuses.map((status) => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`shift-status-${status}`}
+                            checked={statusFilters.includes(status)}
+                            onCheckedChange={() => toggleStatusFilter(status)}
+                          />
+                          <label htmlFor={`shift-status-${status}`} className="text-sm cursor-pointer">{status}</label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status</Label>
-                    {allStatuses.map((status) => (
-                      <div key={status} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`shift-status-${status}`}
-                          checked={statusFilters.includes(status)}
-                          onCheckedChange={() => toggleStatusFilter(status)}
-                        />
-                        <label htmlFor={`shift-status-${status}`} className="text-sm cursor-pointer">{status}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Button variant="outline" size="sm" onClick={exportToCSV}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
+                </PopoverContent>
+              </Popover>
+              <Button variant="outline" size="sm" onClick={exportToCSV}>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
           {hasActiveFilters && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
@@ -330,7 +337,7 @@ const Shifts = () => {
           <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
+                <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                   <TableHead className="text-primary-foreground cursor-pointer select-none" onClick={() => handleSort("name")}>
                     <div className="flex items-center">Shift Name {getSortIcon("name")}</div>
                   </TableHead>

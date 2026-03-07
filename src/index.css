@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Attenove Design System - Dark Teal/Sage Enterprise Theme */
+/* Attenova Design System */
 
 @layer base {
   :root {
-    /* Core brand colors - Solid Blue palette */
+    /* Core – Light palette */
     --background: 220 20% 96%;
     --foreground: 220 40% 15%;
 
@@ -18,18 +18,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 40% 15%;
 
-    /* Primary - Deep Blue */
+    /* Primary – Deep Blue */
     --primary: 220 60% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft Blue */
+    /* Secondary */
     --secondary: 215 30% 90%;
     --secondary-foreground: 220 60% 25%;
 
     --muted: 220 15% 92%;
     --muted-foreground: 220 15% 45%;
 
-    /* Accent - Medium Blue */
     --accent: 220 55% 35%;
     --accent-foreground: 0 0% 100%;
 
@@ -42,7 +41,6 @@
 
     --radius: 0.75rem;
 
-    /* Custom semantic tokens */
     --hero-bg: 220 60% 25%;
     --hero-overlay: 210 25% 65%;
     --success: 152 55% 38%;
@@ -50,18 +48,17 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Status colors */
     --status-present: 152 60% 42%;
     --status-absent: 0 72% 51%;
     --status-late: 38 92% 50%;
     --status-leave: 210 70% 55%;
 
-    /* Chart colors */
+    /* Chart colors – light */
     --chart-1: 220 55% 35%;
     --chart-2: 210 60% 50%;
-    --chart-3: 220 45% 45%;
-    --chart-4: 215 35% 70%;
-    --chart-5: 220 20% 85%;
+    --chart-3: 262 65% 58%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 220 20% 75%;
 
     --sidebar-background: 220 60% 25%;
     --sidebar-foreground: 0 0% 100%;
@@ -73,47 +70,69 @@
     --sidebar-ring: 220 55% 35%;
   }
 
+  /* ─── Dark theme – rich navy + vivid cyan-blue accents (CoreOS-inspired) ─── */
   .dark {
-    --background: 220 30% 8%;
-    --foreground: 220 20% 95%;
+    --background: 222 35% 7%;          /* #090d18 – deep navy-black */
+    --foreground: 218 25% 92%;         /* #e2eaf4 – soft white-blue */
 
-    --card: 220 30% 12%;
-    --card-foreground: 220 20% 95%;
+    --card: 222 32% 11%;               /* #0f1525 – dark navy card */
+    --card-foreground: 218 25% 92%;
 
-    --popover: 220 30% 12%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 222 32% 11%;
+    --popover-foreground: 218 25% 92%;
 
-    --primary: 210 60% 55%;
-    --primary-foreground: 220 30% 8%;
+    /* Primary – vivid electric blue */
+    --primary: 213 90% 62%;            /* #3b9eff */
+    --primary-foreground: 0 0% 100%;   /* white on primary in dark mode */
 
-    --secondary: 220 25% 20%;
-    --secondary-foreground: 220 20% 95%;
+    --secondary: 220 28% 18%;
+    --secondary-foreground: 218 25% 92%;
 
-    --muted: 220 25% 18%;
-    --muted-foreground: 220 15% 65%;
+    --muted: 220 28% 16%;
+    --muted-foreground: 218 18% 55%;
 
-    --accent: 210 50% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 213 90% 62%;
+    --accent-foreground: 222 35% 7%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 25% 20%;
-    --input: 220 25% 20%;
-    --ring: 210 60% 55%;
+    --border: 220 25% 18%;             /* subtle dark border */
+    --input: 220 28% 16%;
+    --ring: 213 90% 62%;
 
-    --hero-bg: 220 30% 12%;
-    --hero-card-bg: 220 25% 16%;
-    --hero-card-border: 220 20% 25%;
+    --radius: 0.75rem;
 
-    --sidebar-background: 220 30% 8%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 210 60% 55%;
-    --sidebar-primary-foreground: 220 30% 8%;
-    --sidebar-accent: 220 25% 18%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 220 25% 20%;
-    --sidebar-ring: 210 60% 55%;
+    --hero-bg: 222 32% 11%;
+    --hero-card-bg: 222 28% 14%;
+    --hero-card-border: 220 25% 22%;
+
+    /* Status tokens – bright in dark */
+    --success: 162 72% 48%;            /* #18dfa2 – bright teal-green */
+    --success-foreground: 222 35% 7%;
+    --warning: 38 98% 58%;
+    --warning-foreground: 222 35% 7%;
+
+    --status-present: 162 72% 48%;
+    --status-absent: 0 65% 55%;
+    --status-late: 38 98% 58%;
+    --status-leave: 213 90% 62%;
+
+    /* Chart colors – vivid dark palette */
+    --chart-1: 213 90% 62%;            /* electric blue */
+    --chart-2: 162 72% 48%;            /* teal-green */
+    --chart-3: 262 78% 68%;            /* violet */
+    --chart-4: 38 98% 58%;             /* amber */
+    --chart-5: 220 28% 32%;            /* muted slate */
+
+    --sidebar-background: 222 35% 7%;
+    --sidebar-foreground: 218 25% 92%;
+    --sidebar-primary: 213 90% 62%;
+    --sidebar-primary-foreground: 222 35% 7%;
+    --sidebar-accent: 220 28% 16%;
+    --sidebar-accent-foreground: 218 25% 92%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 213 90% 62%;
   }
 }
 
@@ -133,26 +152,17 @@
 }
 
 @layer components {
-  /* Hero section styles */
-  .hero-section {
-    @apply bg-primary text-primary-foreground;
-    background: linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(160 30% 22%) 100%);
-  }
-
-  /* Stats card on hero */
-  .hero-stat-card {
-    @apply rounded-xl p-4 border transition-all duration-200;
-    background: hsl(var(--hero-card-bg));
-    border-color: hsl(var(--hero-card-border));
-  }
-
-  .hero-stat-card:hover {
-    background: hsl(160 28% 26%);
-  }
-
   /* Dashboard widget cards */
   .widget-card {
-    @apply bg-card rounded-xl p-5 shadow-sm border border-border;
+    @apply bg-card rounded-xl p-5 shadow-sm border border-border transition-shadow;
+  }
+
+  .dark .widget-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px hsl(var(--border));
+  }
+
+  .widget-card:hover {
+    @apply shadow-md;
   }
 
   /* Status badges */
@@ -186,46 +196,38 @@
 
   .heatmap-level-0 { @apply bg-muted; }
   .heatmap-level-1 { background: hsl(var(--chart-5)); }
-  .heatmap-level-2 { background: hsl(var(--chart-4)); }
-  .heatmap-level-3 { background: hsl(var(--chart-3)); }
-  .heatmap-level-4 { background: hsl(var(--chart-2)); }
+  .heatmap-level-2 { background: hsl(var(--chart-4) / 0.6); }
+  .heatmap-level-3 { background: hsl(var(--chart-3) / 0.7); }
+  .heatmap-level-4 { background: hsl(var(--chart-2) / 0.8); }
   .heatmap-level-5 { background: hsl(var(--chart-1)); }
+
+  /* Pulsing live indicator */
+  .live-dot {
+    @apply w-2 h-2 rounded-full;
+    background: hsl(var(--success));
+    box-shadow: 0 0 0 0 hsl(var(--success) / 0.4);
+    animation: pulse-ring 2s infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0   hsl(var(--success) / 0.4); }
+    70%  { box-shadow: 0 0 0 6px hsl(var(--success) / 0);   }
+    100% { box-shadow: 0 0 0 0   hsl(var(--success) / 0);   }
+  }
 }
 
 @layer utilities {
-  .text-hero {
-    color: hsl(var(--primary-foreground));
-  }
+  .text-success { color: hsl(var(--success)); }
+  .text-warning { color: hsl(var(--warning)); }
+  .bg-success   { background-color: hsl(var(--success)); }
 
-  .bg-hero {
-    background: hsl(var(--hero-bg));
-  }
-
-  .text-success {
-    color: hsl(var(--success));
-  }
-
-  .text-warning {
-    color: hsl(var(--warning));
-  }
-
-  /* Blue scrollbar for modals and scroll areas */
+  /* Blue scrollbar for modals */
   .scrollbar-modal {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary)) transparent;
   }
-  .scrollbar-modal::-webkit-scrollbar {
-    width: 8px;
-  }
-  .scrollbar-modal::-webkit-scrollbar-track {
-    background: hsl(var(--muted) / 0.5);
-    border-radius: 4px;
-  }
-  .scrollbar-modal::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary));
-    border-radius: 4px;
-  }
-  .scrollbar-modal::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--accent));
-  }
+  .scrollbar-modal::-webkit-scrollbar        { width: 8px; }
+  .scrollbar-modal::-webkit-scrollbar-track  { background: hsl(var(--muted) / 0.5); border-radius: 4px; }
+  .scrollbar-modal::-webkit-scrollbar-thumb  { background: hsl(var(--primary)); border-radius: 4px; }
+  .scrollbar-modal::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent)); }
 }

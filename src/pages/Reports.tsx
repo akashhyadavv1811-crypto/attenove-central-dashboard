@@ -377,7 +377,7 @@ const Reports = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="px-6 py-6">
+      <main className="px-4 py-4 md:px-6 md:py-6">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -387,12 +387,12 @@ const Reports = () => {
         </div>
 
         {/* Filters Row */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center">
           {/* Report Type Dropdown */}
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-muted-foreground" />
             <Select value={selectedReportType} onValueChange={setSelectedReportType}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-full sm:w-[260px]">
                 <SelectValue placeholder="Select Report Type" />
               </SelectTrigger>
               <SelectContent>
@@ -405,78 +405,85 @@ const Reports = () => {
             </Select>
           </div>
 
-          {/* Start Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-[160px] justify-start text-left font-normal",
-                  !startDate && "text-muted-foreground"
-                )}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "MMM dd, yyyy") : "Start Date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={startDate}
-                onSelect={setStartDate}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+          {/* Dates + Search + Export */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:flex-1 md:gap-4">
+            <div className="flex gap-3 flex-wrap md:flex-none">
+              {/* Start Date Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[160px] justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "MMM dd, yyyy") : "Start Date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
 
-          {/* End Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-[160px] justify-start text-left font-normal",
-                  !endDate && "text-muted-foreground"
-                )}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "MMM dd, yyyy") : "End Date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={endDate}
-                onSelect={setEndDate}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+              {/* End Date Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[160px] justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "MMM dd, yyyy") : "End Date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, code, status..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 w-[250px]"
-            />
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between md:ml-auto md:flex-none">
+              {/* Search Bar */}
+              <div className="relative sm:w-[260px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, code, status..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Export Button */}
+              <Button className="w-full sm:w-auto sm:ml-0" onClick={exportToCSV}>
+                <Download className="w-4 h-4 mr-2" />
+                Export Report
+              </Button>
+            </div>
           </div>
-
-          {/* Export Button */}
-          <Button className="ml-auto" onClick={exportToCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </Button>
         </div>
 
         {/* Quick Statistics */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Statistics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <div className="widget-card text-center">
               <p className="text-3xl font-bold text-foreground">{quickStats.totalEmployees}</p>
               <p className="text-sm text-muted-foreground">Total Employees</p>
@@ -526,7 +533,7 @@ const Reports = () => {
             {isDailyAttendance ? (
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                     <TableHead
                       className="text-primary-foreground cursor-pointer select-none"
                       onClick={() => handleSortDaily("employee_code")}
@@ -630,7 +637,7 @@ const Reports = () => {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                     <TableHead
                       className="text-primary-foreground cursor-pointer select-none"
                       onClick={() => handleSort("empCode")}

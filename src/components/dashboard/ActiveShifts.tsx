@@ -1,74 +1,71 @@
-import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const shifts = [
-  {
-    name: "Morning Shift",
-    timing: "06:00 AM - 02:00 PM",
-    employees: 85,
-    color: "bg-chart-2",
-  },
-  {
-    name: "General Shift",
-    timing: "09:00 AM - 06:00 PM",
-    employees: 120,
-    color: "bg-chart-1",
-  },
-  {
-    name: "Evening Shift",
-    timing: "02:00 PM - 10:00 PM",
-    employees: 43,
-    color: "bg-chart-3",
-  },
-  {
-    name: "Night Shift",
-    timing: "10:00 PM - 06:00 AM",
-    employees: 28,
-    color: "bg-chart-4",
-  },
+  { name: "General Shift",  percent: 80, employees: 120, capacity: 150, colorDark: "#00e0c0", colorLight: "#0ea5e9" },
+  { name: "Morning Shift",  percent: 72, employees: 85,  capacity: 118, colorDark: "#3b9eff", colorLight: "#6366f1" },
+  { name: "Evening Shift",  percent: 45, employees: 43,  capacity: 96,  colorDark: "#a855f7", colorLight: "#a855f7" },
+  { name: "Night Shift",    percent: 18, employees: 28,  capacity: 156, colorDark: "#f59e0b", colorLight: "#f59e0b" },
 ];
 
-export function ActiveShifts() {
+export function ActiveShifts({ className }: { className?: string }) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const trackBg   = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
+  const rowBg     = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.025)";
+  const rowBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+
   return (
-    <div className="widget-card">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">Active Shifts</h3>
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {shifts.length} <span className="text-sm font-normal text-muted-foreground">Shifts</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="w-8 h-8">
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="w-8 h-8">
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+    <div className={`widget-card${className ? ` ${className}` : ""}`}>
+      <div className="mb-3">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          Shift Load Distribution
+        </h3>
       </div>
 
-      <div className="space-y-3">
-        {shifts.map((shift, index) => (
-          <div 
-            key={index} 
-            className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-          >
-            <div className={`w-10 h-10 rounded-lg ${shift.color} flex items-center justify-center`}>
-              <span className="text-xs font-bold text-primary-foreground">
-                {shift.name.charAt(0)}
-              </span>
+      <div className="space-y-2">
+        {shifts.map((s, i) => {
+          const color = isDark ? s.colorDark : s.colorLight;
+          const glow  = isDark ? `0 0 8px ${s.colorDark}60` : "none";
+          return (
+            <div
+              key={i}
+              className="rounded-xl px-3 py-1.5"
+              style={{ background: rowBg, border: `1px solid ${rowBorder}` }}
+            >
+              {/* Name + percent */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {s.name}
+                </span>
+                <span
+                  className="text-sm font-bold"
+                  style={{ color, textShadow: isDark ? glow : "none" }}
+                >
+                  {s.percent}%
+                </span>
+              </div>
+              {/* Progress bar */}
+              <div
+                className="h-1 rounded-full overflow-hidden"
+                style={{ background: trackBg }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${s.percent}%`,
+                    background: color,
+                    boxShadow: isDark ? glow : "none",
+                  }}
+                />
+              </div>
+              {/* Staff count */}
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                {s.employees} / {s.capacity} staff
+              </p>
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground text-sm">{shift.name}</p>
-              <p className="text-xs text-muted-foreground">{shift.timing}</p>
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">{shift.employees} emp</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

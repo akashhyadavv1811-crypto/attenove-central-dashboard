@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,7 +107,9 @@ export function EditShiftModal({ open, onOpenChange, shift, onSave }: EditShiftM
       <DialogContent className="sm:max-w-[600px] w-[95vw] p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Edit Shift</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Update the shift details below.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Update the shift details below.
+          </DialogDescription>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 px-6 py-5">

@@ -132,7 +132,9 @@ export const EditUserModal = ({ isOpen, onClose, onSave, user, roles, modules }:
       <DialogContent className="max-w-4xl h-[90vh] max-h-[90vh] flex flex-col min-h-0 overflow-hidden p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 shrink-0 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Edit User</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Modify user details and permissions.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Modify user details and permissions.
+          </DialogDescription>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">

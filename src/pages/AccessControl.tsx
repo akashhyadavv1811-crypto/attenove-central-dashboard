@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { 
   Search, Plus, Filter, Download, Pencil, Trash2, ArrowUpDown, 
@@ -425,45 +425,125 @@ const AccessControl = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="roles" className="flex items-center gap-2">
-              <Key className="h-4 w-4" />
-              Roles & Permissions
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              User Management
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <TabsList className="grid w-full max-w-md grid-cols-2 md:w-auto">
+              <TabsTrigger value="roles" className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Roles & Permissions
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                User Management
+              </TabsTrigger>
+            </TabsList>
+
+            {activeTab === "roles" && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end w-full md:w-auto">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search roles..."
+                    value={roleSearchQuery}
+                    onChange={(e) => setRoleSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={exportRolesToCSV}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button size="sm" onClick={() => setIsAddRoleModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Role
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "users" && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end w-full md:w-auto">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filter
+                        {hasActiveFilters && (
+                          <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center">
+                            {roleFilters.length + statusFilters.length}
+                          </Badge>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 bg-popover" align="end">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium mb-2">Role</h4>
+                          <div className="space-y-2">
+                            {uniqueRoles.map((role) => (
+                              <div key={role} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`role-${role}`}
+                                  checked={roleFilters.includes(role)}
+                                  onCheckedChange={() => toggleRoleFilter(role)}
+                                />
+                                <Label htmlFor={`role-${role}`} className="text-sm">{role}</Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-2">Status</h4>
+                          <div className="space-y-2">
+                            {uniqueStatuses.map((status) => (
+                              <div key={status} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`status-${status}`}
+                                  checked={statusFilters.includes(status)}
+                                  onCheckedChange={() => toggleStatusFilter(status)}
+                                />
+                                <Label htmlFor={`status-${status}`} className="text-sm">{status}</Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {hasActiveFilters && (
+                          <Button variant="ghost" size="sm" onClick={clearAllFilters} className="w-full">
+                            Clear all filters
+                          </Button>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Button variant="outline" size="sm" onClick={exportUsersToCSV}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button size="sm" onClick={() => setIsAddUserModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add User
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Roles Tab */}
           <TabsContent value="roles" className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search roles..."
-                  value={roleSearchQuery}
-                  onChange={(e) => setRoleSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={exportRolesToCSV}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-                <Button size="sm" onClick={() => setIsAddRoleModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Role
-                </Button>
-              </div>
-            </div>
-
             <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                     <TableHead 
                       className="text-primary-foreground cursor-pointer"
                       onClick={() => handleRoleSort("name")}
@@ -494,9 +574,8 @@ const AccessControl = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedRoles.map((role) => (
-                    <>
+                    <Fragment key={role.id}>
                       <TableRow 
-                        key={role.id} 
                         className="cursor-pointer"
                         onClick={() => setExpandedRoleId(expandedRoleId === role.id ? null : role.id)}
                       >
@@ -589,7 +668,7 @@ const AccessControl = () => {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
@@ -598,80 +677,6 @@ const AccessControl = () => {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users..."
-                  value={userSearchQuery}
-                  onChange={(e) => setUserSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
-                      {hasActiveFilters && (
-                        <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center">
-                          {roleFilters.length + statusFilters.length}
-                        </Badge>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 bg-popover" align="end">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Role</h4>
-                        <div className="space-y-2">
-                          {uniqueRoles.map((role) => (
-                            <div key={role} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`role-${role}`}
-                                checked={roleFilters.includes(role)}
-                                onCheckedChange={() => toggleRoleFilter(role)}
-                              />
-                              <Label htmlFor={`role-${role}`} className="text-sm">{role}</Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-2">Status</h4>
-                        <div className="space-y-2">
-                          {uniqueStatuses.map((status) => (
-                            <div key={status} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`status-${status}`}
-                                checked={statusFilters.includes(status)}
-                                onCheckedChange={() => toggleStatusFilter(status)}
-                              />
-                              <Label htmlFor={`status-${status}`} className="text-sm">{status}</Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {hasActiveFilters && (
-                        <Button variant="ghost" size="sm" onClick={clearAllFilters} className="w-full">
-                          Clear all filters
-                        </Button>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <Button variant="outline" size="sm" onClick={exportUsersToCSV}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-                <Button size="sm" onClick={() => setIsAddUserModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add User
-                </Button>
-              </div>
-            </div>
-
             {/* Active Filters */}
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2">
@@ -697,7 +702,7 @@ const AccessControl = () => {
             <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
+                  <TableRow className="bg-primary hover:bg-primary dark:bg-card dark:hover:bg-card">
                     <TableHead 
                       className="text-primary-foreground cursor-pointer"
                       onClick={() => handleUserSort("name")}

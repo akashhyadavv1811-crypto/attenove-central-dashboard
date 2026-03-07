@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +99,9 @@ export const AddRoleModal = ({ isOpen, onClose, onAdd, modules }: AddRoleModalPr
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Add New Role</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Create a new role with specific permissions for each module.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Create a new role with specific permissions for each module.
+          </DialogDescription>
         </div>
 
         <form onSubmit={handleSubmit}>

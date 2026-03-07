@@ -94,7 +94,9 @@ export const EditRoleModal = ({ isOpen, onClose, onSave, role, modules }: EditRo
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
         <div className="bg-primary text-primary-foreground px-6 pt-10 pb-3 rounded-t-lg sm:rounded-t-lg">
           <DialogTitle className="text-lg font-semibold text-white">Edit Role</DialogTitle>
-          <p className="text-xs text-white/70 mt-0.5">Modify the role details and permissions.</p>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
+            Modify the role details and permissions.
+          </DialogDescription>
         </div>
 
         <form onSubmit={handleSubmit}>

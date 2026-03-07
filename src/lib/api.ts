@@ -388,6 +388,75 @@ export async function deleteOffice(id: number): Promise<void> {
   }
 }
 
+// ——— Biometric devices ———
+
+export type ApiBiometricDevice = {
+  id: number;
+  office_id: number;
+  office_name: string | null;
+  device_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type BiometricDeviceListResponse = {
+  devices: ApiBiometricDevice[];
+};
+
+export async function fetchBiometricDevices(officeId?: number): Promise<ApiBiometricDevice[]> {
+  const path = officeId != null ? `/api/biometric/devices/?office_id=${officeId}` : "/api/biometric/devices/";
+  const { data, status } = await request<BiometricDeviceListResponse>(path, { method: "GET" });
+  if (status === 401 || status !== 200 || !data?.devices) return [];
+  return data.devices;
+}
+
+export type CreateBiometricDevicePayload = {
+  office_id: number;
+  device_id: string;
+  name?: string;
+  is_active?: boolean;
+};
+
+export async function createBiometricDevice(payload: CreateBiometricDevicePayload): Promise<ApiBiometricDevice> {
+  const { data, status } = await request<ApiBiometricDevice>("/api/biometric/devices/", {
+    method: "POST",
+    body: payload,
+  });
+  if (status !== 201) {
+    const msg = (data as { error?: string })?.error ?? "Failed to create device";
+    throw new Error(msg);
+  }
+  return data;
+}
+
+export type UpdateBiometricDevicePayload = {
+  device_id?: string;
+  name?: string;
+  is_active?: boolean;
+};
+
+export async function updateBiometricDevice(id: number, payload: UpdateBiometricDevicePayload): Promise<ApiBiometricDevice> {
+  const { data, status } = await request<ApiBiometricDevice>(`/api/biometric/devices/${id}/`, {
+    method: "PATCH",
+    body: payload,
+  });
+  if (status !== 200) {
+    const msg = (data as { error?: string })?.error ?? "Failed to update device";
+    throw new Error(msg);
+  }
+  return data;
+}
+
+export async function deleteBiometricDevice(id: number): Promise<void> {
+  const { status, data } = await request<{ message?: string }>(`/api/biometric/devices/${id}/`, { method: "DELETE" });
+  if (status !== 200) {
+    const msg = (data as { error?: string })?.error ?? "Failed to delete device";
+    throw new Error(msg);
+  }
+}
+
 // ——— Employees ———
 
 export type DesignationOption = { value: string; label: string };

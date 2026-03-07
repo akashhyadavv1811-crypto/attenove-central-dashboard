@@ -1,84 +1,104 @@
-import { MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 
-// Generate mock heatmap data
-const generateHeatmapData = () => {
-  const weeks = 12;
-  const days = 7;
-  const data: number[][] = [];
-  
-  for (let w = 0; w < weeks; w++) {
-    const week: number[] = [];
-    for (let d = 0; d < days; d++) {
-      // Weekend (0 = Sunday, 6 = Saturday) - lower attendance
-      if (d === 0 || d === 6) {
-        week.push(Math.random() > 0.7 ? Math.floor(Math.random() * 2) : 0);
-      } else {
-        week.push(Math.floor(Math.random() * 5) + 1);
-      }
-    }
-    data.push(week);
-  }
-  return data;
-};
+// 5 rows = Mon–Fri, 24 columns = hours or 30 columns = days of month
+const DAYS  = ["MO", "TU", "WE", "TH", "FR"] as const;
+const COLS  = 28;
 
-const heatmapData = generateHeatmapData();
-const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+function seededRand(seed: number) {
+  let s = seed;
+  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+}
 
-export function AttendanceHeatmap() {
-  const getLevelClass = (level: number) => {
-    switch (level) {
-      case 0: return 'heatmap-level-0';
-      case 1: return 'heatmap-level-1';
-      case 2: return 'heatmap-level-2';
-      case 3: return 'heatmap-level-3';
-      case 4: return 'heatmap-level-4';
-      default: return 'heatmap-level-5';
-    }
+const rand = seededRand(42);
+const data: number[][] = DAYS.map((_, di) =>
+  Array.from({ length: COLS }, (_, ci) => {
+    if (di === 5 || di === 6) return rand() > 0.7 ? 1 : 0; // weekend sparse
+    const v = rand();
+    if (v < 0.12) return 0;
+    if (v < 0.30) return 1;
+    if (v < 0.52) return 2;
+    if (v < 0.72) return 3;
+    if (v < 0.88) return 4;
+    return 5;
+  })
+);
+
+export function AttendanceHeatmap({ className }: { className?: string }) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const [tab, setTab] = useState<"daily" | "weekly">("daily");
+
+  const cellColor = (level: number): React.CSSProperties => {
+    if (level === 0) return { background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)" };
+    const stops = isDark
+      ? ["rgba(0,224,192,0.18)", "rgba(0,224,192,0.38)", "rgba(0,200,180,0.58)", "rgba(0,200,180,0.78)", "rgba(0,224,192,1)"]
+      : ["rgba(14,165,233,0.18)", "rgba(14,165,233,0.38)", "rgba(14,165,233,0.58)", "rgba(14,165,233,0.78)", "rgba(14,165,233,1)"];
+    return {
+      background: stops[level - 1],
+      boxShadow: isDark && level >= 4 ? `0 0 4px rgba(0,224,192,${(level - 3) * 0.3})` : undefined,
+    };
   };
 
   return (
-    <div className="widget-card">
+    <div className={`widget-card flex flex-col${className ? ` ${className}` : ""}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Attendance Overview</h3>
-        <Button variant="ghost" size="icon" className="w-6 h-6">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="flex gap-2">
-        {/* Day labels */}
-        <div className="flex flex-col gap-1 pt-0.5">
-          {dayLabels.map((day, index) => (
-            <div key={index} className="h-3 text-xs text-muted-foreground flex items-center">
-              {index % 2 === 1 ? day : ''}
-            </div>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-widest">Attendance Heatmap</h3>
+          <p className="text-[10px] text-muted-foreground mt-0.5">System engagement & check-ins</p>
+        </div>
+        {/* Daily / Weekly tab */}
+        <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-muted">
+          {(["daily", "weekly"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all capitalize"
+              style={{
+                background: tab === t
+                  ? (isDark ? "hsl(213 90% 62%)" : "hsl(220 60% 25%)")
+                  : "transparent",
+                color: tab === t ? "#fff" : "hsl(var(--muted-foreground))",
+              }}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Heatmap grid */}
-        <div className="flex gap-1 overflow-x-auto">
-          {heatmapData.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-1">
-              {week.map((level, dayIndex) => (
-                <div
-                  key={dayIndex}
-                  className={`heatmap-cell ${getLevelClass(level)}`}
-                  title={`Week ${weekIndex + 1}, ${dayLabels[dayIndex]}: Level ${level}`}
-                />
-              ))}
+      {/* Grid — grows to fill available card height */}
+      <div className="overflow-x-auto flex-1 flex flex-col justify-center">
+        <div className="flex flex-col gap-2.5 min-w-max">
+          {data.map((row, di) => (
+            <div key={di} className="flex items-center gap-2">
+              {/* Day label */}
+              <span className="text-[10px] font-semibold text-muted-foreground w-6 flex-shrink-0 text-right">
+                {DAYS[di]}
+              </span>
+              {/* Cells */}
+              <div className="flex gap-1">
+                {row.map((level, ci) => (
+                  <div
+                    key={ci}
+                    className="w-4 h-4 rounded-sm transition-all hover:scale-110 cursor-pointer flex-shrink-0"
+                    style={cellColor(level)}
+                    title={`${DAYS[di]} – col ${ci + 1}: ${["None", "Low", "Moderate", "Good", "High", "Peak"][level]}`}
+                  />
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-1 mt-4">
-        <span className="text-xs text-muted-foreground mr-2">Less</span>
-        {[0, 1, 2, 3, 4, 5].map((level) => (
-          <div key={level} className={`heatmap-cell ${getLevelClass(level)}`} />
+      <div className="flex items-center justify-end gap-1.5 mt-4 pt-3 border-t border-border">
+        <span className="text-[10px] text-muted-foreground mr-0.5">Low</span>
+        {[0, 1, 2, 3, 4, 5].map((l) => (
+          <div key={l} className="w-3.5 h-3.5 rounded-sm" style={cellColor(l)} />
         ))}
-        <span className="text-xs text-muted-foreground ml-2">More</span>
+        <span className="text-[10px] text-muted-foreground ml-0.5">Peak</span>
       </div>
     </div>
   );

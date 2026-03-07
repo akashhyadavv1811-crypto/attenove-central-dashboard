@@ -321,14 +321,14 @@ export function OrganizationModal({
                 className="h-1.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
               />
             </div>
-            <h2 className="text-lg font-semibold text-white mt-2">
+            <DialogTitle className="text-lg font-semibold text-white mt-2">
               {step === 1 ? "Owner Profile" : "Organization Details"}
-            </h2>
-            <p className="text-xs text-white/70 mt-0.5">
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/70 mt-0.5">
               {step === 1
                 ? "Enter the details of the organization owner or primary contact."
                 : "Enter your organization name and contact details."}
-            </p>
+            </DialogDescription>
           </div>
 
           <form onSubmit={handleAddSubmit}>
@@ -574,14 +574,14 @@ export function OrganizationModal({
               className="h-1.5 rounded-full bg-transparent [&>div]:h-full [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-white [&>div]:to-white/90 [&>div]:shadow-[0_0_14px_rgba(255,255,255,0.35)] [&>div]:transition-all [&>div]:duration-500"
             />
           </div>
-          <h2 className="text-lg font-semibold text-white mt-2">
+          <DialogTitle className="text-lg font-semibold text-white mt-2">
             {editStep === 1 ? "Owner Profile" : "Organization Details"}
-          </h2>
-          <p className="text-xs text-white/70 mt-0.5">
+          </DialogTitle>
+          <DialogDescription className="text-xs text-white/70 mt-0.5">
             {editStep === 1
               ? "Enter the details of the organization owner or primary contact."
               : "Enter your organization name and contact details."}
-          </p>
+          </DialogDescription>
         </div>
 
         <form
