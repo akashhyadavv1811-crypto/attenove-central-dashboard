@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import { Download, Calendar, FileText, Search, ArrowUpDown, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -374,10 +375,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
-      <main className="px-4 py-4 md:px-6 md:py-6">
+      <main className="flex-1 px-4 py-4 md:px-6 md:py-6">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -773,6 +774,7 @@ const Reports = () => {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import { Search, Plus, Clock, Pencil, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -227,10 +228,10 @@ const Shifts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="px-6 py-6">
+      <main className="flex-1 px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Shifts</h1>
@@ -446,6 +447,7 @@ const Shifts = () => {
         description={`Are you sure you want to delete "${selectedShift?.name}"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
       />
+      <Footer />
     </div>
   );
 };

@@ -13,6 +13,7 @@ import Organizations from "./pages/Organizations";
 import Offices from "./pages/Offices";
 import Shifts from "./pages/Shifts";
 import Reports from "./pages/Reports";
+import Notifications from "./pages/Notifications";
 import AccessControl from "./pages/AccessControl";
 import BiometricDevices from "./pages/BiometricDevices";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/offices" element={<ProtectedRoute><Offices /></ProtectedRoute>} />
               <Route path="/shifts" element={<ProtectedRoute><Shifts /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/access-control" element={<ProtectedRoute><AccessControl /></ProtectedRoute>} />
               <Route path="/biometric-devices" element={<ProtectedRoute><BiometricDevices /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />

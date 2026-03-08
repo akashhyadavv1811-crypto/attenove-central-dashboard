@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -35,6 +35,14 @@ import AttenovaLogo from "@/assets/Attenova-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
+import {
+  fetchNotifications,
+  fetchUnreadNotificationCount,
+  markNotificationRead,
+  type ApiNotification,
+} from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 // ─── Nav structure ──────────────────────────────────────────────────────────
 
@@ -138,50 +146,24 @@ function isGroupActive(group: NavGroup, pathname: string): boolean {
   return group.items?.some((item) => pathname === item.path) ?? false;
 }
 
-// ─── Notifications (placeholder – wire to API later) ────────────────────────
+// ─── Notifications (dynamic from API – display_type comes from backend) ───────
 
-type NotificationItem = {
-  id: string;
-  type: "info" | "success" | "warning";
-  title: string;
-  message: string;
-  time: string;
-  unread?: boolean;
-};
+type IconType = "info" | "success" | "warning";
 
-const NOTIFICATION_ICON = {
+const NOTIFICATION_ICON: Record<IconType, { Icon: typeof Info; bg: string; color: string }> = {
   info: { Icon: Info, bg: "bg-blue-100 dark:bg-blue-500/20", color: "text-blue-600 dark:text-blue-300" },
   success: { Icon: CheckCircle2, bg: "bg-emerald-100 dark:bg-emerald-500/20", color: "text-emerald-600 dark:text-emerald-300" },
   warning: { Icon: AlertCircle, bg: "bg-amber-100 dark:bg-amber-500/20", color: "text-amber-600 dark:text-amber-300" },
 };
 
-// Placeholder list – replace with API/context when backend is ready
-const placeholderNotifications: NotificationItem[] = [
-  {
-    id: "1",
-    type: "success",
-    title: "Report ready",
-    message: "Monthly attendance report for January is ready to download.",
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    type: "info",
-    title: "System update",
-    message: "Attenova was updated. No action required.",
-    time: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    type: "warning",
-    title: "Shift reminder",
-    message: "Evening shift starts in 30 minutes.",
-    time: "Yesterday",
-    unread: false,
-  },
-];
+function formatNotificationTime(createdAt: string | null): string {
+  if (!createdAt) return "";
+  try {
+    return formatDistanceToNow(new Date(createdAt), { addSuffix: true });
+  } catch {
+    return "";
+  }
+}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -192,6 +174,51 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpandedGroups, setMobileExpandedGroups] = useState<Set<string>>(new Set());
+  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+
+  const loadUnreadCount = useCallback(async () => {
+    const count = await fetchUnreadNotificationCount();
+    setUnreadCount(count);
+  }, []);
+
+  const loadNotifications = useCallback(async () => {
+    setNotificationsLoading(true);
+    try {
+      const res = await fetchNotifications({ page_size: 20, is_read: false });
+      setNotifications(res.notifications);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) loadUnreadCount();
+  }, [user, loadUnreadCount]);
+
+  useEffect(() => {
+    if (notificationOpen && user) {
+      loadNotifications();
+      loadUnreadCount();
+    }
+  }, [notificationOpen, user, loadNotifications, loadUnreadCount]);
+
+  const handleMarkReadAndRemove = async (e: React.MouseEvent, n: ApiNotification) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await markNotificationRead(n.id);
+      setNotifications((prev) => prev.filter((x) => x.id !== n.id));
+      if (!n.is_read) setUnreadCount((c) => Math.max(0, c - 1));
+      toast.success("Marked as read");
+    } catch {
+      toast.error("Failed to mark as read");
+    }
+  };
 
   const displayName = user?.name ?? "User";
   const initials = displayName.split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "U";
@@ -236,13 +263,16 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 select-none flex-shrink-0">
             <img src={AttenovaLogo} alt="Attenova" className="w-9 h-9 object-contain" />
-            <span
-              className={cn(
-                "font-bold text-lg tracking-tight hidden sm:block",
-                isDark ? "text-foreground" : "text-white"
-              )}
-            >
-              Attenova
+            <span className="flex items-baseline gap-0.5 hidden sm:flex">
+              <span
+                className={cn(
+                  "font-bold text-lg tracking-tight",
+                  isDark ? "text-foreground" : "text-white"
+                )}
+              >
+                Atten
+              </span>
+              <span className="font-bold text-lg tracking-tight text-[hsl(199,89%,48%)]">ova</span>
             </span>
           </Link>
 
@@ -373,8 +403,8 @@ export function Header() {
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
-          {/* Notification bell – opens dropdown */}
-          <DropdownMenu>
+          {/* Notification bell – opens dropdown, fetches from API */}
+          <DropdownMenu open={notificationOpen} onOpenChange={setNotificationOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -387,8 +417,10 @@ export function Header() {
                 )}
               >
                 <Bell className="w-4 h-4" />
-                {placeholderNotifications.some((n) => n.unread) && (
-                  <span className={cn("absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2", isDark ? "ring-card" : "ring-primary")} aria-hidden />
+                {unreadCount > 0 && (
+                  <span className={cn("absolute top-1.5 right-1.5 min-w-[8px] h-4 px-1 flex items-center justify-center text-[10px] font-bold bg-rose-500 text-white rounded-full ring-2", isDark ? "ring-card" : "ring-primary")} aria-hidden>
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -400,37 +432,49 @@ export function Header() {
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/50">
                 <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
-                {placeholderNotifications.some((n) => n.unread) && (
+                {unreadCount > 0 && (
                   <span className="text-xs font-medium text-muted-foreground">
-                    {placeholderNotifications.filter((n) => n.unread).length} new
+                    {unreadCount} new
                   </span>
                 )}
               </div>
               <div className="max-h-[320px] overflow-y-auto scrollbar-modal">
-                {placeholderNotifications.length === 0 ? (
+                {notificationsLoading ? (
+                  <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Loading…
+                  </div>
+                ) : notifications.length === 0 ? (
                   <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                     No notifications yet.
                   </div>
                 ) : (
-                  placeholderNotifications.map((n) => {
-                    const { Icon, bg, color } = NOTIFICATION_ICON[n.type];
+                  notifications.map((n) => {
+                    const iconKey = (n.display_type ?? "info") as IconType;
+                    const { Icon, bg, color } = NOTIFICATION_ICON[iconKey] ?? NOTIFICATION_ICON.info;
                     return (
                       <div
                         key={n.id}
                         className={cn(
-                          "flex gap-3 px-4 py-3 border-b border-border last:border-0 transition-colors hover:bg-muted/50",
-                          n.unread && "bg-primary/5"
+                          "w-full text-left flex gap-3 px-4 py-3 border-b border-border last:border-0 transition-colors hover:bg-muted/50",
+                          !n.is_read && "bg-primary/5"
                         )}
                       >
                         <div className={cn("flex-shrink-0 p-1.5 rounded-lg", bg)}>
                           <Icon className={cn("w-4 h-4", color)} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={cn("text-sm font-medium text-foreground", n.unread && "font-semibold")}>
+                          <p className={cn("text-sm font-medium text-foreground", !n.is_read && "font-semibold")}>
                             {n.title}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                          <p className="text-[11px] text-muted-foreground/80 mt-1">{n.time}</p>
+                          <p className="text-[11px] text-muted-foreground/80 mt-1">{formatNotificationTime(n.created_at)}</p>
+                          <button
+                            type="button"
+                            onClick={(e) => handleMarkReadAndRemove(e, n)}
+                            className="text-xs font-medium text-primary hover:text-primary/80 hover:underline mt-1.5 focus:outline-none"
+                          >
+                            Mark read
+                          </button>
                         </div>
                       </div>
                     );
@@ -438,12 +482,13 @@ export function Header() {
                 )}
               </div>
               <div className="px-4 py-2 border-t border-border bg-muted/30">
-                <button
-                  type="button"
-                  className="w-full py-2 text-center text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                <Link
+                  to="/notifications"
+                  className="block w-full py-2 text-center text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  onClick={() => setNotificationOpen(false)}
                 >
                   View all notifications
-                </button>
+                </Link>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -549,8 +594,9 @@ export function Header() {
                 <div className="flex items-center gap-2.5">
                   <img src={AttenovaLogo} alt="Attenova" className="w-8 h-8 object-contain drop-shadow" />
                   <div className="leading-tight">
-                    <span className="block font-bold text-lg tracking-tight text-white">
-                      Attenova
+                    <span className="flex items-baseline gap-0.5">
+                      <span className="font-bold text-lg tracking-tight text-white">Atten</span>
+                      <span className="font-bold text-lg tracking-tight text-[hsl(199,89%,48%)]">ova</span>
                     </span>
                     <span className="block text-[11px] text-white/70">
                       Workspace Navigator

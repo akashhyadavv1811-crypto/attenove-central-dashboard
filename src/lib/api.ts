@@ -160,6 +160,69 @@ export async function getCurrentUser(): Promise<ApiUser | null> {
   return data.user;
 }
 
+// ——— Notifications ———
+
+export type NotificationDisplayType = "success" | "info" | "warning";
+
+export type ApiNotification = {
+  id: number;
+  notification_type: string;
+  display_type?: NotificationDisplayType;
+  title: string;
+  message: string;
+  is_read: boolean;
+  content_type: number | null;
+  object_id: number | null;
+  created_at: string | null;
+  created_by_id: number | null;
+  created_by_name: string | null;
+};
+
+export type NotificationListResponse = {
+  notifications: ApiNotification[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export async function fetchNotifications(
+  params?: { page?: number; page_size?: number; is_read?: boolean; notification_type?: string }
+): Promise<NotificationListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.page != null) sp.set("page", String(params.page));
+  if (params?.page_size != null) sp.set("page_size", String(params.page_size));
+  if (params?.is_read != null) sp.set("is_read", String(params.is_read));
+  if (params?.notification_type) sp.set("notification_type", params.notification_type);
+  const qs = sp.toString();
+  const path = qs ? `/api/notifications/?${qs}` : "/api/notifications/";
+  const { data, status } = await request<NotificationListResponse>(path, { method: "GET" });
+  if (status === 401 || status !== 200 || !data?.notifications) {
+    return { notifications: [], total: 0, page: 1, page_size: 20 };
+  }
+  return data;
+}
+
+export async function fetchUnreadNotificationCount(): Promise<number> {
+  const { data, status } = await request<{ unread_count: number }>("/api/notifications/unread-count/", { method: "GET" });
+  if (status === 401 || status !== 200 || data?.unread_count == null) return 0;
+  return data.unread_count;
+}
+
+export async function markNotificationRead(id: number): Promise<ApiNotification> {
+  const { data, status } = await request<{ notification: ApiNotification }>(`/api/notifications/${id}/read/`, {
+    method: "PATCH",
+    body: {},
+  });
+  if (status !== 200 || !data?.notification) throw new Error("Failed to mark notification as read");
+  return data.notification;
+}
+
+export async function markAllNotificationsRead(): Promise<number> {
+  const { data, status } = await request<{ updated: number }>("/api/notifications/read-all/", { method: "PATCH" });
+  if (status !== 200 || data?.updated == null) return 0;
+  return data.updated;
+}
+
 // ——— Organizations ———
 
 export type ApiOrganizationOwner = {

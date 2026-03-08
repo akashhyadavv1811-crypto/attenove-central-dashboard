@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import {
   Search,
   Plus,
@@ -441,9 +442,9 @@ const Employees = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className={`px-4 py-4 md:px-6 md:py-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
+      <main className={`flex-1 px-4 py-4 md:px-6 md:py-6 ${selectedIds.size > 0 ? "pb-20" : ""}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Employees</h1>
@@ -938,6 +939,7 @@ const Employees = () => {
           </DialogContent>
         </Dialog>
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, Fragment } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import { 
   Search, Plus, Filter, Download, Pencil, Trash2, ArrowUpDown, 
   ChevronUp, ChevronDown, X, Shield, Users, Key, Settings2
@@ -412,10 +413,10 @@ const AccessControl = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
-      <main className="p-6">
+
+      <main className="flex-1 p-6">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="h-8 w-8 text-primary" />
@@ -870,6 +871,7 @@ const AccessControl = () => {
         title="Delete User"
         description={`Are you sure you want to delete the user "${selectedUser?.name}"? This action cannot be undone.`}
       />
+      <Footer />
     </div>
   );
 };

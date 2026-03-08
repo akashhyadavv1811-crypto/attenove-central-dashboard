@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import {
   Search,
   Plus,
@@ -228,9 +229,9 @@ const Offices = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="px-4 py-4 md:px-6 md:py-6">
+      <main className="flex-1 px-4 py-4 md:px-6 md:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Offices</h1>
@@ -575,6 +576,7 @@ const Offices = () => {
           onConfirm={handleConfirmDelete}
         />
       </main>
+      <Footer />
     </div>
   );
 };

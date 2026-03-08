@@ -1,4 +1,5 @@
 import { Header } from "@/components/dashboard/Header";
+import { Footer } from "@/components/dashboard/Footer";
 import { HeroSection } from "@/components/dashboard/HeroSection";
 import { ActiveShifts } from "@/components/dashboard/ActiveShifts";
 import { RecentLogs } from "@/components/dashboard/RecentLogs";
@@ -7,11 +8,11 @@ import { AttendanceHeatmap } from "@/components/dashboard/AttendanceHeatmap";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <HeroSection />
 
-      <main className="px-6 py-6 pt-5">
+      <main className="flex-1 px-6 py-6 pt-5">
         {/* Main 2-column layout — columns share equal height, bottom widgets stretch */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 lg:items-stretch">
 
@@ -29,6 +30,7 @@ const Index = () => {
         </div>
 
       </main>
+      <Footer />
     </div>
   );
 };
